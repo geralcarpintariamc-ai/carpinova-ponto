@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Ponto Carpinova</title>
+<title>Horas Carpinova</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -28,6 +28,9 @@
   .tab{flex:1;padding:10px 6px;text-align:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--wood-panel);border:1px solid var(--line);border-radius:6px;cursor:pointer;color:var(--paper-dim);user-select:none;}
   .tab.active{background:var(--copper);border-color:var(--copper);color:#241A14;}
 
+  .modo-tabs{display:flex;gap:8px;margin-bottom:12px;}
+  .modo-tabs .tab{display:block;}
+
   .card{background:var(--wood-panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);}
   .section-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--copper-bright);margin:0 0 12px;}
 
@@ -39,14 +42,12 @@
   input, select{width:100%;padding:12px 10px;background:var(--paper);color:var(--wood-dark);border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:15px;margin-bottom:10px;}
   label.field-label{display:block;font-size:12px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;}
 
-  .punchcard{background:var(--paper);color:var(--wood-dark);border-radius:8px;padding:20px;position:relative;
+  .formcard{background:var(--paper);color:var(--wood-dark);border-radius:8px;padding:20px;position:relative;
     background-image:radial-gradient(circle, var(--wood-dark) 3px, transparent 3.5px);
     background-size:100% 20px;background-position:0 -6px;background-repeat:repeat-y;padding-left:26px;}
-  .punchcard .name{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;}
-  .punchcard .status{font-family:'IBM Plex Mono',monospace;font-size:13px;color:#6b5744;margin-top:2px;}
-  .punchcard .timer{font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:600;margin:10px 0 4px;color:var(--wood-dark);}
+  .formcard .name{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;margin-bottom:4px;}
+  .formcard .status{font-family:'IBM Plex Mono',monospace;font-size:13px;color:#6b5744;margin-top:2px;}
   .badge-extra{display:inline-block;background:var(--copper);color:#2a1a0e;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;}
-  .badge-pausa{display:inline-block;background:#8a7658;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;}
 
   .big-btn{width:100%;padding:18px;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-top:8px;}
   .big-btn.in{background:var(--ok-green);color:#152012;}
@@ -89,14 +90,14 @@
   .key:active{transform:scale(.95);}
   .modal-cancel{margin-top:14px;}
   .pin-error{color:var(--stop-red);font-size:12.5px;min-height:16px;margin-bottom:4px;}
-  .edit-modal input[type="datetime-local"]{font-family:'IBM Plex Mono',monospace;}
+  .edit-modal input[type="date"], .edit-modal input[type="number"]{font-family:'IBM Plex Mono',monospace;}
   .row-actions{display:flex;justify-content:space-between;align-items:center;padding:8px 0;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">Ponto <span>Carpinova</span></div>
+    <div class="brand">Horas <span>Carpinova</span></div>
     <div class="clock" id="liveClock">--:--:--</div>
   </header>
 
@@ -117,7 +118,7 @@ const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyYf2mWfQIV8-s4YehWe
 let trabalhadores=[], obras=[], registos=[], adminPin=null;
 let currentUser=null;   // null | {role:'worker', id, nome} | {role:'admin'}
 let currentTab=null;
-let tickInterval=null;
+let modoRegisto='numero';
 
 const TIPOS=['Fabrico','Montagem','Outro'];
 
@@ -159,15 +160,16 @@ async function saveRegistos(){ try{ await apiSave('registos', registos); }catch(
 async function saveAdminPin(){ try{ await apiSave('adminPin', adminPin); }catch(e){ console.error(e); } }
 
 /* ---------- FORMAT HELPERS ---------- */
-function fmtTime(iso){ return new Date(iso).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}); }
-function fmtDate(iso){ return new Date(iso).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}); }
-function fmtDuration(ms){ const totalMin=Math.floor(ms/60000); const h=Math.floor(totalMin/60); const m=totalMin%60; return h+'h '+String(m).padStart(2,'0')+'m'; }
-function hoursDecimal(ms){ return Math.round((ms/3600000)*100)/100; }
-function toLocalInputValue(iso){ const d=new Date(iso); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
-function pausasMs(reg){ return (reg.pausas||[]).reduce((sum,p)=> sum + (p.fim ? (new Date(p.fim)-new Date(p.inicio)) : 0), 0); }
-function registoDurationMs(reg){ if(!reg.saida) return 0; return (new Date(reg.saida)-new Date(reg.entrada)) - pausasMs(reg); }
-function activeRegistoFor(workerId){ return registos.find(r=>r.trabalhadorId===workerId && !r.saida && !r.apagado) || null; }
-function activePausaFor(reg){ return reg && (reg.pausas||[]).find(p=>!p.fim) || null; }
+function fmtDataBR(d){ if(!d) return '—'; const [y,m,dd]=d.split('-'); return `${dd}/${m}`; }
+function fmtHoras(h){ if(h==null || isNaN(h)) return '—'; const totalMin=Math.round(h*60); const hh=Math.floor(totalMin/60); const mm=totalMin%60; return hh+'h '+String(mm).padStart(2,'0')+'m'; }
+function round2(n){ return Math.round(n*100)/100; }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function calcHorasIntervalo(inicio, fim){
+  const [h1,m1]=inicio.split(':').map(Number), [h2,m2]=fim.split(':').map(Number);
+  let mins=(h2*60+m2)-(h1*60+m1);
+  if(mins<0) mins+=24*60;
+  return round2(mins/60);
+}
 
 /* ---------- PIN KEYPAD MODALS ---------- */
 function askPin({title, sub, expectedPin, onSuccess, allowCancel=true}){
@@ -248,7 +250,7 @@ function askNewPin({title, sub, onDone}){
 function loginWorker(id){
   const worker=trabalhadores.find(w=>w.id===id);
   askPin({ title:worker.nome, sub:'Introduz o teu PIN pessoal', expectedPin:worker.pin,
-    onSuccess:()=>{ currentUser={role:'worker', id:worker.id, nome:worker.nome}; currentTab='ponto'; renderApp(); } });
+    onSuccess:()=>{ currentUser={role:'worker', id:worker.id, nome:worker.nome}; currentTab='registar'; renderApp(); } });
 }
 function loginAdmin(){
   if(!adminPin){
@@ -259,7 +261,7 @@ function loginAdmin(){
   askPin({ title:'Administrador', sub:'Introduz o PIN de administrador', expectedPin:adminPin,
     onSuccess:()=>{ currentUser={role:'admin'}; currentTab='resumo'; renderApp(); } });
 }
-function logout(){ currentUser=null; currentTab=null; stopTicker(); renderApp(); }
+function logout(){ currentUser=null; currentTab=null; renderApp(); }
 
 /* ---------- TOP BAR / TABS ---------- */
 function renderSessionBar(){
@@ -271,7 +273,7 @@ function renderSessionBar(){
 }
 function tabsForRole(){
   if(!currentUser) return [];
-  if(currentUser.role==='worker') return [['ponto','Ponto'],['meuhistorico','Meu histórico']];
+  if(currentUser.role==='worker') return [['registar','Registar horas'],['meuhistorico','Meu histórico']];
   return [['equipa','Equipa'],['historico','Histórico'],['resumo','Resumo']];
 }
 function renderTabsBar(){
@@ -291,7 +293,7 @@ function renderTabsBar(){
 function renderFootNote(){
   const el=document.getElementById('footNote');
   if(!currentUser){ el.textContent='Cada pessoa entra com o seu próprio PIN. Só o administrador pode criar trabalhadores, gerir obras, corrigir registos e ver o resumo geral.'; return; }
-  if(currentUser.role==='worker'){ el.textContent='Só vês os teus próprios registos. Depois de dares entrada/saída, só o administrador pode corrigir ou anular um registo.'; return; }
+  if(currentUser.role==='worker'){ el.textContent='Só vês os teus próprios registos. Depois de os registares, só o administrador pode corrigir ou anular um registo.'; return; }
   el.textContent='Nenhum registo é apagado — só corrigido ou anulado, sempre com motivo e data.';
 }
 
@@ -302,10 +304,9 @@ function renderApp(){
   renderMain();
 }
 function renderMain(){
-  const el=document.getElementById('app');
   if(!currentUser){ renderLogin(); return; }
   if(currentUser.role==='worker'){
-    if(currentTab==='ponto') renderPonto();
+    if(currentTab==='registar') renderRegistar();
     else if(currentTab==='meuhistorico') renderMeuHistorico();
   } else {
     if(currentTab==='equipa') renderEquipa();
@@ -326,98 +327,107 @@ function renderLogin(){
   el.innerHTML=html;
 }
 
-/* ---------- WORKER: PONTO ---------- */
-function renderPonto(){
+/* ---------- WORKER: REGISTAR HORAS ---------- */
+function setModoRegisto(m){
+  modoRegisto=m;
+  const tabNum=document.getElementById('modoNumeroTab'), tabInt=document.getElementById('modoIntervaloTab');
+  if(tabNum) tabNum.classList.toggle('active', m==='numero');
+  if(tabInt) tabInt.classList.toggle('active', m==='intervalo');
+  const fNum=document.getElementById('modoNumeroFields'), fInt=document.getElementById('modoIntervaloFields');
+  if(fNum) fNum.style.display = m==='numero' ? 'block':'none';
+  if(fInt) fInt.style.display = m==='intervalo' ? 'block':'none';
+}
+
+function renderRegistar(){
   const el=document.getElementById('app');
-  const worker=currentUser;
-  const active=activeRegistoFor(worker.id);
-  const pausa=activePausaFor(active);
+  let html='<div class="formcard">';
+  html+=`<div class="name">${currentUser.nome}</div>`;
 
-  let html='<div class="punchcard">';
-  html+=`<div class="name">${worker.nome}${active&&active.extra?'<span class="badge-extra">Extra</span>':''}${pausa?'<span class="badge-pausa">Em pausa</span>':''}</div>`;
-
-  if(active){
-    html+=`<div class="status">Em obra: <b>${active.obra}</b> · ${active.tipo}</div>`;
-    html+=`<div class="status">Entrada às ${fmtTime(active.entrada)}</div>`;
-    html+=`<div class="timer" id="liveTimer">0h 00m</div>`;
-    if(pausa){
-      html+=`<div class="status">Pausa iniciada às ${fmtTime(pausa.inicio)}</div>`;
-      html+=`<button class="big-btn mid" onclick="endPausa()">Terminar pausa</button>`;
-    } else {
-      html+=`<button class="big-btn mid" onclick="startPausa()">Iniciar pausa</button>`;
-    }
-    html+=`<button class="big-btn out" onclick="clockOut()" ${pausa?'disabled':''}>Bater saída</button>`;
-    if(pausa) html+=`<div class="status" style="margin-top:6px;">Termina a pausa antes de bater saída</div>`;
+  if(obras.length===0){
+    html+=`<div class="status">O administrador ainda não adicionou nenhuma obra.</div>`;
   } else {
-    html+=`<div class="status">Sem registo em curso</div>`;
-    if(obras.length===0){
-      html+=`<div class="status" style="margin-top:14px;">O administrador ainda não adicionou nenhuma obra.</div>`;
-    } else {
-      html+=`<label class="field-label" style="margin-top:14px;">Obra</label><select id="selObra">`;
-      obras.forEach(o=>{ html+=`<option value="${o}">${o}</option>`; });
-      html+=`</select>`;
-      html+=`<label class="field-label">Tipo</label><select id="selTipo">`;
-      TIPOS.forEach(t=>{ html+=`<option value="${t}">${t}</option>`; });
-      html+=`</select>`;
-      html+=`<div class="checkbox-row"><input type="checkbox" id="chkExtra"><label for="chkExtra">Registar como hora extraordinária</label></div>`;
-      html+=`<button class="big-btn in" onclick="clockIn()">Bater entrada</button>`;
-    }
+    const hoje=todayStr();
+    html+=`<label class="field-label">Data</label><input type="date" id="regData" value="${hoje}" max="${hoje}">`;
+    html+=`<label class="field-label">Obra</label><select id="regObra">`;
+    obras.forEach(o=>{ html+=`<option value="${o}">${o}</option>`; });
+    html+=`</select>`;
+    html+=`<label class="field-label">Tipo</label><select id="regTipo">`;
+    TIPOS.forEach(t=>{ html+=`<option value="${t}">${t}</option>`; });
+    html+=`</select>`;
+
+    html+=`<label class="field-label">Como queres indicar as horas?</label>
+      <div class="modo-tabs">
+        <div class="tab active" id="modoNumeroTab" onclick="setModoRegisto('numero')">Nº de horas</div>
+        <div class="tab" id="modoIntervaloTab" onclick="setModoRegisto('intervalo')">Início–fim</div>
+      </div>`;
+    html+=`<div id="modoNumeroFields">
+        <label class="field-label">Horas trabalhadas</label>
+        <input type="number" id="regHoras" step="0.25" min="0.25" max="24" placeholder="ex: 7.5">
+      </div>`;
+    html+=`<div id="modoIntervaloFields" style="display:none;">
+        <label class="field-label">Hora de início</label><input type="time" id="regInicio">
+        <label class="field-label">Hora de fim</label><input type="time" id="regFim">
+      </div>`;
+    html+=`<div class="checkbox-row"><input type="checkbox" id="chkExtra"><label for="chkExtra">Registar como hora extraordinária</label></div>`;
+    html+=`<button class="big-btn in" onclick="submitRegisto()">Registar horas</button>`;
   }
   html+='</div>';
+
+  const meus=registos.filter(r=>r.trabalhadorId===currentUser.id && !r.apagado)
+    .sort((a,b)=> new Date(b.data)-new Date(a.data) || new Date(b.criadoEm)-new Date(a.criadoEm)).slice(0,5);
+  if(meus.length){
+    html+='<div class="card"><div class="section-title">Últimos registos</div>';
+    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Tipo</th><th>Horas</th></tr></thead><tbody>';
+    meus.forEach(r=>{
+      html+=`<tr><td>${fmtDataBR(r.data)}</td><td class="name-col">${r.obra}</td><td>${r.tipo}${r.extra?' <span class="badge-extra">Extra</span>':''}</td><td>${fmtHoras(r.horas)}</td></tr>`;
+    });
+    html+='</tbody></table></div>';
+  }
+
   el.innerHTML=html;
-
-  if(active && !pausa){ startTicker(active); } else { stopTicker(); }
+  modoRegisto='numero';
 }
-function startTicker(reg){
-  stopTicker();
-  function tick(){ const t=document.getElementById('liveTimer'); if(!t) return; const elapsed=(Date.now()-new Date(reg.entrada).getTime())-pausasMs(reg); t.textContent=fmtDuration(elapsed); }
-  tick(); tickInterval=setInterval(tick,1000);
-}
-function stopTicker(){ if(tickInterval){ clearInterval(tickInterval); tickInterval=null; } }
 
-async function clockIn(){
-  const selObra=document.getElementById('selObra');
-  const selTipo=document.getElementById('selTipo');
+async function submitRegisto(){
+  const data=document.getElementById('regData').value;
+  const obra=document.getElementById('regObra').value;
+  const tipo=document.getElementById('regTipo').value;
   const extra=document.getElementById('chkExtra').checked;
-  const obra=selObra.value, tipo=selTipo.value;
+  if(!data){ alert('Escolhe a data.'); return; }
+
+  let horas, horaInicio=null, horaFim=null;
+  if(modoRegisto==='numero'){
+    horas=parseFloat(document.getElementById('regHoras').value);
+    if(!horas || horas<=0){ alert('Indica o número de horas.'); return; }
+  } else {
+    horaInicio=document.getElementById('regInicio').value;
+    horaFim=document.getElementById('regFim').value;
+    if(!horaInicio || !horaFim){ alert('Indica a hora de início e de fim.'); return; }
+    horas=calcHorasIntervalo(horaInicio, horaFim);
+    if(horas<=0){ alert('O intervalo indicado não é válido.'); return; }
+  }
+
   registos.push({
     id:uid(), trabalhadorId:currentUser.id, trabalhador:currentUser.nome,
-    obra, tipo, extra, entrada:new Date().toISOString(), saida:null,
-    pausas:[], apagado:false, correcoes:[]
+    data, obra, tipo, extra, modo:modoRegisto, horas, horaInicio, horaFim,
+    criadoEm:new Date().toISOString(), apagado:false, correcoes:[]
   });
   await saveRegistos();
-  renderPonto();
-}
-async function startPausa(){
-  const reg=activeRegistoFor(currentUser.id); if(!reg) return;
-  reg.pausas=reg.pausas||[]; reg.pausas.push({inicio:new Date().toISOString(), fim:null});
-  await saveRegistos(); renderPonto();
-}
-async function endPausa(){
-  const reg=activeRegistoFor(currentUser.id); if(!reg) return;
-  const p=activePausaFor(reg); if(!p) return;
-  p.fim=new Date().toISOString(); await saveRegistos(); renderPonto();
-}
-async function clockOut(){
-  const reg=activeRegistoFor(currentUser.id); if(!reg) return;
-  if(activePausaFor(reg)) return;
-  reg.saida=new Date().toISOString(); await saveRegistos(); stopTicker(); renderPonto();
+  renderRegistar();
 }
 
 /* ---------- WORKER: MEU HISTORICO (read-only, só o seu) ---------- */
 function renderMeuHistorico(){
   const el=document.getElementById('app');
-  const meus=registos.filter(r=>r.trabalhadorId===currentUser.id).sort((a,b)=>new Date(b.entrada)-new Date(a.entrada));
+  const meus=registos.filter(r=>r.trabalhadorId===currentUser.id)
+    .sort((a,b)=> new Date(b.data)-new Date(a.data) || new Date(b.criadoEm)-new Date(a.criadoEm));
   let html='<div class="card"><div class="section-title">Meu histórico</div>';
   if(meus.length===0){ html+='<div class="empty">Ainda não tens registos.</div>'; }
   else{
-    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Tipo</th><th>Entr.</th><th>Saída</th><th>Pausa</th><th>Horas</th></tr></thead><tbody>';
+    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Tipo</th><th>Horas</th></tr></thead><tbody>';
     meus.forEach(r=>{
-      const dur=r.saida?fmtDuration(registoDurationMs(r)):'—';
-      const pausaTxt=(r.pausas&&r.pausas.length)?fmtDuration(pausasMs(r)):'—';
       html+=`<tr class="${r.apagado?'anulado':''}">
-        <td>${fmtDate(r.entrada)}</td><td class="name-col">${r.obra}</td><td>${r.tipo}${r.extra?' <span class="badge-extra">Extra</span>':''}</td>
-        <td>${fmtTime(r.entrada)}</td><td>${r.saida?fmtTime(r.saida):'em curso'}</td><td>${pausaTxt}</td><td>${dur}</td>
+        <td>${fmtDataBR(r.data)}</td><td class="name-col">${r.obra}</td><td>${r.tipo}${r.extra?' <span class="badge-extra">Extra</span>':''}</td><td>${fmtHoras(r.horas)}</td>
       </tr>`;
     });
     html+='</tbody></table>';
@@ -447,7 +457,7 @@ function renderEquipa(){
 async function promptAddWorker(){
   const nome=prompt('Nome do trabalhador:');
   if(!nome||!nome.trim()) return;
-  askNewPin({ title:'PIN de '+nome.trim(), sub:'Escolhe um PIN de 4 dígitos para este trabalhador picar o ponto',
+  askNewPin({ title:'PIN de '+nome.trim(), sub:'Escolhe um PIN de 4 dígitos para este trabalhador',
     onDone: async (pin)=>{ trabalhadores.push({id:uid(), nome:nome.trim(), pin}); await saveTrabalhadores(); renderEquipa(); } });
 }
 async function removeTrabalhador(id){
@@ -475,20 +485,17 @@ async function removeObra(nome){
 /* ---------- ADMIN: HISTORICO (todos, com correções) ---------- */
 function renderHistorico(){
   const el=document.getElementById('app');
-  const sorted=[...registos].sort((a,b)=>new Date(b.entrada)-new Date(a.entrada));
+  const sorted=[...registos].sort((a,b)=> new Date(b.data)-new Date(a.data) || new Date(b.criadoEm)-new Date(a.criadoEm));
   let html='<div class="card"><div class="section-title">Histórico (todos)</div>';
   if(sorted.length===0){ html+='<div class="empty">Ainda não há registos.</div>'; }
   else{
-    html+='<table><thead><tr><th>Data</th><th>Trab.</th><th>Obra</th><th>Tipo</th><th>Entr.</th><th>Saída</th><th>Pausa</th><th>Horas</th><th></th></tr></thead><tbody>';
+    html+='<table><thead><tr><th>Data</th><th>Trab.</th><th>Obra</th><th>Tipo</th><th>Horas</th><th></th></tr></thead><tbody>';
     sorted.forEach(r=>{
-      const dur=r.saida?fmtDuration(registoDurationMs(r)):'—';
-      const pausaTxt=(r.pausas&&r.pausas.length)?fmtDuration(pausasMs(r)):'—';
       html+=`<tr class="${r.apagado?'anulado':''}">
-        <td>${fmtDate(r.entrada)}</td>
+        <td>${fmtDataBR(r.data)}</td>
         <td class="name-col">${r.trabalhador}${r.extra?' <span class="badge-extra">Extra</span>':''}</td>
         <td class="name-col">${r.obra}</td><td>${r.tipo}</td>
-        <td>${fmtTime(r.entrada)}</td><td>${r.saida?fmtTime(r.saida):'em curso'}</td>
-        <td>${pausaTxt}</td><td>${dur}</td>
+        <td>${fmtHoras(r.horas)}</td>
         <td>${!r.apagado?`<button class="edt" onclick="editRegisto('${r.id}')">corrigir</button> <button class="del" onclick="anularRegisto('${r.id}')">anular</button>`:'anulado'}</td>
       </tr>`;
     });
@@ -514,26 +521,25 @@ function openEditForm(id){
   root.innerHTML=`<div class="modal-bg"><div class="modal edit-modal" style="max-width:360px;text-align:left;">
       <h3 style="text-align:center;">Corrigir registo</h3>
       <p class="sub" style="text-align:center;">${reg.trabalhador} · ${reg.obra}</p>
-      <label class="field-label">Entrada</label>
-      <input type="datetime-local" id="editEntrada" value="${toLocalInputValue(reg.entrada)}">
-      <label class="field-label">Saída</label>
-      <input type="datetime-local" id="editSaida" value="${reg.saida?toLocalInputValue(reg.saida):''}">
+      <label class="field-label">Data</label>
+      <input type="date" id="editData" value="${reg.data}">
+      <label class="field-label">Horas</label>
+      <input type="number" step="0.25" id="editHoras" value="${reg.horas}">
       <label class="field-label">Motivo da correção</label>
-      <input type="text" id="editMotivo" placeholder="ex: esqueceu-se de bater saída">
+      <input type="text" id="editMotivo" placeholder="ex: enganou-se no número de horas">
       <button class="big-btn in" id="editSave">Guardar correção</button>
       <button class="link-btn modal-cancel" id="editCancel">cancelar</button>
     </div></div>`;
   document.getElementById('editCancel').onclick=()=>{ root.innerHTML=''; };
   document.getElementById('editSave').onclick=async ()=>{
-    const novaEntrada=document.getElementById('editEntrada').value;
-    const novaSaida=document.getElementById('editSaida').value;
+    const novaData=document.getElementById('editData').value;
+    const novasHoras=parseFloat(document.getElementById('editHoras').value);
     const motivo=document.getElementById('editMotivo').value||'(sem motivo indicado)';
-    if(!novaEntrada){ alert('A entrada é obrigatória'); return; }
-    const antesEntrada=reg.entrada, antesSaida=reg.saida;
-    reg.entrada=new Date(novaEntrada).toISOString();
-    reg.saida=novaSaida?new Date(novaSaida).toISOString():null;
+    if(!novaData || !novasHoras){ alert('Preenche a data e as horas.'); return; }
+    const antesData=reg.data, antesHoras=reg.horas;
+    reg.data=novaData; reg.horas=novasHoras;
     reg.correcoes=reg.correcoes||[];
-    reg.correcoes.push({quando:new Date().toISOString(), campo:'entrada/saída', de:`${fmtTime(antesEntrada)}–${antesSaida?fmtTime(antesSaida):'—'}`, para:`${fmtTime(reg.entrada)}–${reg.saida?fmtTime(reg.saida):'—'}`, motivo});
+    reg.correcoes.push({quando:new Date().toISOString(), campo:'data/horas', de:`${antesData} · ${fmtHoras(antesHoras)}`, para:`${reg.data} · ${fmtHoras(reg.horas)}`, motivo});
     await saveRegistos();
     root.innerHTML='';
     renderHistorico();
@@ -543,35 +549,35 @@ function openEditForm(id){
 /* ---------- ADMIN: RESUMO ---------- */
 function renderResumo(){
   const el=document.getElementById('app');
-  const closed=registos.filter(r=>r.saida && !r.apagado);
+  const validos=registos.filter(r=>!r.apagado);
   function aggregate(keyFn){
     const map={};
-    closed.forEach(r=>{ const k=keyFn(r); map[k]=(map[k]||0)+registoDurationMs(r); });
+    validos.forEach(r=>{ const k=keyFn(r); map[k]=(map[k]||0)+(r.horas||0); });
     return Object.entries(map).sort((a,b)=>b[1]-a[1]);
   }
   const byObra=aggregate(r=>r.obra);
   const byWorker=aggregate(r=>r.trabalhador);
   const maxObra=byObra.length?byObra[0][1]:1;
   const maxWorker=byWorker.length?byWorker[0][1]:1;
-  const extraTotal=closed.filter(r=>r.extra).reduce((s,r)=>s+registoDurationMs(r),0);
+  const extraTotal=validos.filter(r=>r.extra).reduce((s,r)=>s+(r.horas||0),0);
 
   let html='<div class="card"><div class="section-title">Horas por obra</div>';
   if(byObra.length===0) html+='<div class="empty">Sem dados ainda.</div>';
-  byObra.forEach(([obra,ms])=>{
-    const pct=Math.round((ms/maxObra)*100);
-    html+=`<div class="resumo-row"><div style="display:flex;justify-content:space-between;"><span class="resumo-name">${obra}</span><span class="resumo-h">${hoursDecimal(ms)} h</span></div><div class="resumo-bar-bg"><div class="resumo-bar" style="width:${pct}%"></div></div></div>`;
+  byObra.forEach(([obra,h])=>{
+    const pct=Math.round((h/maxObra)*100);
+    html+=`<div class="resumo-row"><div style="display:flex;justify-content:space-between;"><span class="resumo-name">${obra}</span><span class="resumo-h">${round2(h)} h</span></div><div class="resumo-bar-bg"><div class="resumo-bar" style="width:${pct}%"></div></div></div>`;
   });
   html+='</div>';
 
   html+='<div class="card"><div class="section-title">Horas por trabalhador</div>';
   if(byWorker.length===0) html+='<div class="empty">Sem dados ainda.</div>';
-  byWorker.forEach(([nome,ms])=>{
-    const pct=Math.round((ms/maxWorker)*100);
-    html+=`<div class="resumo-row"><div style="display:flex;justify-content:space-between;"><span class="resumo-name">${nome}</span><span class="resumo-h">${hoursDecimal(ms)} h</span></div><div class="resumo-bar-bg"><div class="resumo-bar" style="width:${pct}%"></div></div></div>`;
+  byWorker.forEach(([nome,h])=>{
+    const pct=Math.round((h/maxWorker)*100);
+    html+=`<div class="resumo-row"><div style="display:flex;justify-content:space-between;"><span class="resumo-name">${nome}</span><span class="resumo-h">${round2(h)} h</span></div><div class="resumo-bar-bg"><div class="resumo-bar" style="width:${pct}%"></div></div></div>`;
   });
   html+='</div>';
 
-  html+=`<div class="card"><div class="section-title">Horas extraordinárias</div><div class="resumo-row" style="border:none;"><span class="resumo-name">Total registado</span> <span class="resumo-h">${hoursDecimal(extraTotal)} h</span></div></div>`;
+  html+=`<div class="card"><div class="section-title">Horas extraordinárias</div><div class="resumo-row" style="border:none;"><span class="resumo-name">Total registado</span> <span class="resumo-h">${round2(extraTotal)} h</span></div></div>`;
   el.innerHTML=html;
 }
 
