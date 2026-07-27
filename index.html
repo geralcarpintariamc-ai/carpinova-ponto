@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ponto Carpinova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --wood-dark:#241A14;
+    --wood-panel:#382920;
+    --wood-panel-2:#3F2E23;
+    --paper:#F1E7D2;
+    --paper-dim:#E4D6B8;
+    --copper:#C17A3E;
+    --copper-bright:#DE9552;
+    --ok-green:#6E8F5C;
+    --stop-red:#AE4A3C;
+    --line:#5A4534;
+    --shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(ellipse at top, #34271e 0%, var(--wood-dark) 60%);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid var(--line);
+    padding-bottom:14px;margin-bottom:20px;
+  }
+  .brand{font-family:'Oswald',sans-serif;font-weight:700;font-size:26px;letter-spacing:.04em;text-transform:uppercase;}
+  .brand span{color:var(--copper-bright);}
+  .clock{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--paper-dim);text-align:right;line-height:1.3;white-space:pre-line;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .tab{flex:1;padding:10px 6px;text-align:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--wood-panel);border:1px solid var(--line);border-radius:6px;cursor:pointer;color:var(--paper-dim);user-select:none;}
+  .tab.active{background:var(--copper);border-color:var(--copper);color:#241A14;}
+
+  .card{background:var(--wood-panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .section-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--copper-bright);margin:0 0 12px;}
+
+  .worker-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .worker-btn{position:relative;background:var(--wood-panel-2);border:1px solid var(--line);border-radius:8px;padding:16px 10px;text-align:center;cursor:pointer;font-weight:600;font-size:15px;min-height:64px;display:flex;align-items:center;justify-content:center;}
+  .worker-btn:active{transform:scale(.97);}
+  .worker-btn .dot{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--ok-green);box-shadow:0 0 6px var(--ok-green);}
+  .worker-btn.add{border-style:dashed;color:var(--paper-dim);font-weight:500;}
+
+  input, select{width:100%;padding:12px 10px;background:var(--paper);color:var(--wood-dark);border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:15px;margin-bottom:10px;}
+  label.field-label{display:block;font-size:12px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;}
+
+  .punchcard{background:var(--paper);color:var(--wood-dark);border-radius:8px;padding:20px;position:relative;
+    background-image:radial-gradient(circle, var(--wood-dark) 3px, transparent 3.5px);
+    background-size:100% 20px;background-position:0 -6px;background-repeat:repeat-y;padding-left:26px;}
+  .punchcard .name{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;}
+  .punchcard .status{font-family:'IBM Plex Mono',monospace;font-size:13px;color:#6b5744;margin-top:2px;}
+  .punchcard .timer{font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:600;margin:10px 0 4px;color:var(--wood-dark);}
+  .badge-extra{display:inline-block;background:var(--copper);color:#2a1a0e;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;}
+  .badge-pausa{display:inline-block;background:#8a7658;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;}
+
+  .big-btn{width:100%;padding:18px;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-top:8px;}
+  .big-btn.in{background:var(--ok-green);color:#152012;}
+  .big-btn.out{background:var(--stop-red);color:#2a120e;}
+  .big-btn.mid{background:var(--copper);color:#2a1a0e;}
+  .big-btn:active{transform:scale(.98);}
+  .big-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .checkbox-row{display:flex;align-items:center;gap:8px;margin:6px 0 4px;font-size:14px;color:var(--paper-dim);}
+  .checkbox-row input{width:auto;margin:0;}
+
+  .link-btn{background:none;border:none;color:var(--copper-bright);font-size:13px;text-decoration:underline;cursor:pointer;padding:6px 0;}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;font-family:'Oswald',sans-serif;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--copper-bright);padding:6px 4px;border-bottom:1px solid var(--line);}
+  td{padding:8px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-family:'IBM Plex Mono',monospace;}
+  td.name-col{font-family:'IBM Plex Sans',sans-serif;}
+  tr.anulado td{opacity:.4;text-decoration:line-through;}
+  .del{color:var(--stop-red);cursor:pointer;font-size:12px;background:none;border:none;padding:0;margin-right:8px;}
+  .edt{color:var(--copper-bright);cursor:pointer;font-size:12px;background:none;border:none;padding:0;}
+  .empty{color:var(--paper-dim);font-size:14px;padding:10px 0;text-align:center;}
+
+  .resumo-row{display:block;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+  .resumo-row:last-child{border-bottom:none;}
+  .resumo-bar-bg{background:rgba(255,255,255,.08);border-radius:4px;height:8px;overflow:hidden;margin-top:6px;}
+  .resumo-bar{height:100%;background:var(--copper);}
+  .resumo-name{font-weight:600;font-size:14px;}
+  .resumo-h{font-family:'IBM Plex Mono',monospace;color:var(--copper-bright);font-weight:600;}
+
+  .note{font-size:12px;color:var(--paper-dim);margin-top:14px;line-height:1.55;}
+  .back-link{margin-bottom:12px;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(10,7,5,.75);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .modal{background:var(--wood-panel);border:1px solid var(--line);border-radius:12px;padding:24px;width:100%;max-width:320px;text-align:center;box-shadow:var(--shadow);}
+  .modal h3{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.05em;font-size:16px;margin:0 0 4px;}
+  .modal p.sub{font-size:12.5px;color:var(--paper-dim);margin:0 0 16px;}
+  .pin-dots{display:flex;justify-content:center;gap:12px;margin:14px 0 18px;}
+  .pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--copper-bright);}
+  .pin-dot.filled{background:var(--copper-bright);}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .key{background:var(--wood-panel-2);border:1px solid var(--line);border-radius:8px;padding:16px 0;font-size:20px;font-family:'IBM Plex Mono',monospace;color:var(--paper);cursor:pointer;}
+  .key:active{transform:scale(.95);}
+  .modal-cancel{margin-top:14px;}
+  .pin-error{color:var(--stop-red);font-size:12.5px;min-height:16px;margin-bottom:4px;}
+  .edit-modal input[type="datetime-local"]{font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Ponto <span>Carpinova</span></div>
+    <div class="clock" id="liveClock">--:--:--</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="ponto">Ponto</div>
+    <div class="tab" data-tab="historico">Histórico</div>
+    <div class="tab" data-tab="resumo">Resumo</div>
+  </div>
+
+  <div id="loadingMsg" class="empty">A carregar dados...</div>
+  <div id="view-ponto" style="display:none;"></div>
+  <div id="view-historico" style="display:none;"></div>
+  <div id="view-resumo" style="display:none;"></div>
+
+  <div class="note">
+    Conforme o Artigo 202.º do Código do Trabalho: cada picagem exige o PIN pessoal do trabalhador (identificação inequívoca), as pausas são registadas à parte, e nenhum registo é apagado — só um administrador pode corrigir, e cada correção fica registada com data e motivo. Guarda os registos por, pelo menos, 5 anos. Nota de segurança: os PINs ficam guardados de forma simples (não encriptados) — chega para uso interno da equipa, mas não é um sistema de segurança bancária.
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+// >>> COLA AQUI O URL DA TUA IMPLEMENTAÇÃO DO APPS SCRIPT (termina em /exec) <<<
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyYf2mWfQIV8-s4YehWepXsfRST627lAmkkLE6WtzBJxmK24kdStO54Z3fWivajUvTb7g/exec';
+
+let trabalhadores=[], obras=[], registos=[], adminPin=null;
+let selectedWorkerId=null, tickInterval=null;
+
+const DEFAULT_OBRAS=['Seminário Conciliar Braga','USF São Tomé de Negrelos','Quinta da Gateira','Baltor - Editora Barcelos','BOUW-PLAN Porto','Oficina / Produção'];
+const TIPOS=['Fabrico','Montagem','Outro'];
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+async function apiGetAll(){
+  const res = await fetch(WEBAPP_URL, {method:'GET'});
+  if(!res.ok) throw new Error('Falha ao contactar o backend');
+  return await res.json();
+}
+async function apiSave(key, value){
+  // body como string simples (sem headers custom) evita pré-voo CORS no Apps Script
+  await fetch(WEBAPP_URL, { method:'POST', body: JSON.stringify({action:'save', key, value: JSON.stringify(value)}) });
+}
+
+async function loadAll(){
+  const data = await apiGetAll();
+  trabalhadores = data.trabalhadores ? JSON.parse(data.trabalhadores) : [];
+  if(data.obras){ obras = JSON.parse(data.obras); }
+  else{ obras = DEFAULT_OBRAS.slice(); await saveObras(); }
+  registos = data.registos ? JSON.parse(data.registos) : [];
+  adminPin = data.adminPin ? JSON.parse(data.adminPin) : null;
+}
+async function saveTrabalhadores(){ try{ await apiSave('trabalhadores', trabalhadores); }catch(e){ console.error(e); alert('Não foi possível guardar — verifica a ligação à internet.'); } }
+async function saveObras(){ try{ await apiSave('obras', obras); }catch(e){ console.error(e); } }
+async function saveRegistos(){ try{ await apiSave('registos', registos); }catch(e){ console.error(e); alert('Não foi possível guardar — verifica a ligação à internet.'); } }
+async function saveAdminPin(){ try{ await apiSave('adminPin', adminPin); }catch(e){ console.error(e); } }
+
+function fmtTime(iso){ return new Date(iso).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}); }
+function fmtDate(iso){ return new Date(iso).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}); }
+function fmtDuration(ms){ const totalMin=Math.floor(ms/60000); const h=Math.floor(totalMin/60); const m=totalMin%60; return h+'h '+String(m).padStart(2,'0')+'m'; }
+function hoursDecimal(ms){ return Math.round((ms/3600000)*100)/100; }
+function toLocalInputValue(iso){
+  const d=new Date(iso); const pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function pausasMs(reg){ return (reg.pausas||[]).reduce((sum,p)=> sum + (p.fim ? (new Date(p.fim)-new Date(p.inicio)) : 0), 0); }
+function registoDurationMs(reg){ if(!reg.saida) return 0; return (new Date(reg.saida)-new Date(reg.entrada)) - pausasMs(reg); }
+function activeRegistoFor(workerId){ return registos.find(r=>r.trabalhadorId===workerId && !r.saida && !r.apagado) || null; }
+function activePausaFor(reg){ return reg && (reg.pausas||[]).find(p=>!p.fim) || null; }
+
+function askPin({title, sub, expectedPin, onSuccess, allowCancel=true}){
+  const root=document.getElementById('modalRoot');
+  let entered='';
+  function render(err){
+    root.innerHTML = `
+      <div class="modal-bg">
+        <div class="modal">
+          <h3>${title}</h3>
+          <p class="sub">${sub}</p>
+          <div class="pin-error">${err?'PIN incorreto, tenta outra vez':''}</div>
+          <div class="pin-dots" id="pinDots"></div>
+          <div class="keypad" id="keypad"></div>
+          ${allowCancel?'<button class="link-btn modal-cancel" id="pinCancel">cancelar</button>':''}
+        </div>
+      </div>`;
+    const dotsEl=document.getElementById('pinDots');
+    dotsEl.innerHTML='';
+    for(let i=0;i<4;i++){
+      const d=document.createElement('div');
+      d.className='pin-dot'+(i<entered.length?' filled':'');
+      dotsEl.appendChild(d);
+    }
+    const keys=['1','2','3','4','5','6','7','8','9','','0','⌫'];
+    const kp=document.getElementById('keypad');
+    kp.innerHTML='';
+    keys.forEach(k=>{
+      const b=document.createElement('div');
+      if(k===''){ b.style.visibility='hidden'; b.className='key'; }
+      else{
+        b.className='key';
+        b.textContent=k;
+        b.onclick=()=>{
+          if(k==='⌫'){ entered=entered.slice(0,-1); render(false); return; }
+          if(entered.length<4){ entered+=k; }
+          if(entered.length===4){
+            if(entered===expectedPin){ root.innerHTML=''; onSuccess(); }
+            else{ entered=''; render(true); }
+          } else { render(false); }
+        };
+      }
+      kp.appendChild(b);
+    });
+    if(allowCancel){ document.getElementById('pinCancel').onclick=()=>{ root.innerHTML=''; }; }
+  }
+  render(false);
+}
+
+function askNewPin({title, sub, onDone}){
+  const root=document.getElementById('modalRoot');
+  let step=1, firstPin='', entered='';
+  function render(err){
+    root.innerHTML = `
+      <div class="modal-bg">
+        <div class="modal">
+          <h3>${title}</h3>
+          <p class="sub">${step===1?sub:'Confirma o PIN'}</p>
+          <div class="pin-error">${err?'Os PINs não coincidem, começa de novo':''}</div>
+          <div class="pin-dots" id="pinDots"></div>
+          <div class="keypad" id="keypad"></div>
+          <button class="link-btn modal-cancel" id="pinCancel">cancelar</button>
+        </div>
+      </div>`;
+    const dotsEl=document.getElementById('pinDots');
+    dotsEl.innerHTML='';
+    for(let i=0;i<4;i++){
+      const d=document.createElement('div');
+      d.className='pin-dot'+(i<entered.length?' filled':'');
+      dotsEl.appendChild(d);
+    }
+    const keys=['1','2','3','4','5','6','7','8','9','','0','⌫'];
+    const kp=document.getElementById('keypad');
+    kp.innerHTML='';
+    keys.forEach(k=>{
+      const b=document.createElement('div');
+      if(k===''){ b.style.visibility='hidden'; b.className='key'; }
+      else{
+        b.className='key'; b.textContent=k;
+        b.onclick=()=>{
+          if(k==='⌫'){ entered=entered.slice(0,-1); render(false); return; }
+          if(entered.length<4){ entered+=k; }
+          if(entered.length===4){
+            if(step===1){ firstPin=entered; entered=''; step=2; render(false); }
+            else{
+              if(entered===firstPin){ root.innerHTML=''; onDone(firstPin); }
+              else{ entered=''; step=1; firstPin=''; render(true); }
+            }
+          } else { render(false); }
+        };
+      }
+      kp.appendChild(b);
+    });
+    document.getElementById('pinCancel').onclick=()=>{ root.innerHTML=''; };
+  }
+  render(false);
+}
+
+function ensureAdminPin(cb){
+  if(adminPin){ cb(); return; }
+  askNewPin({
+    title:'Criar PIN de administrador',
+    sub:'Este PIN é teu, para corrigir ou anular registos. Define-o agora.',
+    onDone: async (pin)=>{ adminPin=pin; await saveAdminPin(); cb(); }
+  });
+}
+
+function renderPonto(){
+  const el=document.getElementById('view-ponto');
+  if(!selectedWorkerId){
+    let html='<div class="card"><div class="section-title">Quem és?</div><div class="worker-grid">';
+    trabalhadores.forEach(w=>{
+      const active=!!activeRegistoFor(w.id);
+      html+=`<div class="worker-btn" onclick="pickWorker('${w.id}')">${w.nome}${active?'<span class="dot"></span>':''}</div>`;
+    });
+    html+=`<div class="worker-btn add" onclick="promptAddWorker()">+ Adicionar</div></div></div>`;
+    if(trabalhadores.length===0){ html+='<div class="empty">Ainda não há trabalhadores. Toca em "+ Adicionar" para criar o primeiro.</div>'; }
+    el.innerHTML=html;
+    return;
+  }
+  const worker=trabalhadores.find(w=>w.id===selectedWorkerId);
+  if(!worker){ selectedWorkerId=null; renderPonto(); return; }
+  const active=activeRegistoFor(worker.id);
+  const pausa=activePausaFor(active);
+
+  let html='<div class="back-link"><button class="link-btn" onclick="deselectWorker()">&larr; trocar trabalhador</button></div>';
+  html+='<div class="punchcard">';
+  html+=`<div class="name">${worker.nome}${active&&active.extra?'<span class="badge-extra">Extra</span>':''}${pausa?'<span class="badge-pausa">Em pausa</span>':''}</div>`;
+
+  if(active){
+    html+=`<div class="status">Em obra: <b>${active.obra}</b> · ${active.tipo}</div>`;
+    html+=`<div class="status">Entrada às ${fmtTime(active.entrada)}</div>`;
+    html+=`<div class="timer" id="liveTimer">0h 00m</div>`;
+    if(pausa){
+      html+=`<div class="status">Pausa iniciada às ${fmtTime(pausa.inicio)}</div>`;
+      html+=`<button class="big-btn mid" onclick="endPausa()">Terminar pausa</button>`;
+    } else {
+      html+=`<button class="big-btn mid" onclick="startPausa()">Iniciar pausa</button>`;
+    }
+    html+=`<button class="big-btn out" onclick="clockOut()" ${pausa?'disabled':''}>Bater saída</button>`;
+    if(pausa) html+=`<div class="status" style="margin-top:6px;">Termina a pausa antes de bater saída</div>`;
+  } else {
+    html+=`<div class="status">Sem registo em curso</div>`;
+    html+=`<label class="field-label" style="margin-top:14px;">Obra</label><select id="selObra">`;
+    obras.forEach(o=>{ html+=`<option value="${o}">${o}</option>`; });
+    html+=`<option value="__nova__">+ Nova obra...</option></select>`;
+    html+=`<label class="field-label">Tipo</label><select id="selTipo">`;
+    TIPOS.forEach(t=>{ html+=`<option value="${t}">${t}</option>`; });
+    html+=`</select>`;
+    html+=`<div class="checkbox-row"><input type="checkbox" id="chkExtra"><label for="chkExtra">Registar como hora extraordinária</label></div>`;
+    html+=`<button class="big-btn in" onclick="clockIn()">Bater entrada</button>`;
+  }
+  html+='</div>';
+  el.innerHTML=html;
+
+  if(active && !pausa){ startTicker(active); } else { stopTicker(); }
+}
+
+function startTicker(reg){
+  stopTicker();
+  function tick(){
+    const t=document.getElementById('liveTimer');
+    if(!t) return;
+    const elapsed=(Date.now()-new Date(reg.entrada).getTime()) - pausasMs(reg);
+    t.textContent=fmtDuration(elapsed);
+  }
+  tick();
+  tickInterval=setInterval(tick,1000);
+}
+function stopTicker(){ if(tickInterval){ clearInterval(tickInterval); tickInterval=null; } }
+
+function pickWorker(id){
+  const worker=trabalhadores.find(w=>w.id===id);
+  askPin({
+    title:worker.nome,
+    sub:'Introduz o teu PIN pessoal',
+    expectedPin:worker.pin,
+    onSuccess:()=>{ selectedWorkerId=id; renderPonto(); }
+  });
+}
+function deselectWorker(){ selectedWorkerId=null; stopTicker(); renderPonto(); }
+
+async function promptAddWorker(){
+  const nome=prompt('Nome do trabalhador:');
+  if(!nome||!nome.trim()) return;
+  askNewPin({
+    title:'PIN de '+nome.trim(),
+    sub:'Escolhe um PIN de 4 dígitos para picar o ponto',
+    onDone: async (pin)=>{
+      trabalhadores.push({id:uid(), nome:nome.trim(), pin});
+      await saveTrabalhadores();
+      renderPonto();
+    }
+  });
+}
+
+async function clockIn(){
+  const selObra=document.getElementById('selObra');
+  const selTipo=document.getElementById('selTipo');
+  const extra=document.getElementById('chkExtra').checked;
+  let obra=selObra.value;
+  if(obra==='__nova__'){
+    const nova=prompt('Nome da nova obra:');
+    if(!nova||!nova.trim()) return;
+    obra=nova.trim(); obras.push(obra); await saveObras();
+  }
+  const tipo=selTipo.value;
+  registos.push({
+    id:uid(), trabalhadorId:selectedWorkerId,
+    trabalhador:trabalhadores.find(w=>w.id===selectedWorkerId).nome,
+    obra, tipo, extra, entrada:new Date().toISOString(), saida:null,
+    pausas:[], apagado:false, correcoes:[]
+  });
+  await saveRegistos();
+  renderPonto();
+}
+
+async function startPausa(){
+  const reg=activeRegistoFor(selectedWorkerId);
+  if(!reg) return;
+  reg.pausas=reg.pausas||[];
+  reg.pausas.push({inicio:new Date().toISOString(), fim:null});
+  await saveRegistos();
+  renderPonto();
+}
+async function endPausa(){
+  const reg=activeRegistoFor(selectedWorkerId);
+  if(!reg) return;
+  const p=activePausaFor(reg);
+  if(!p) return;
+  p.fim=new Date().toISOString();
+  await saveRegistos();
+  renderPonto();
+}
+async function clockOut(){
+  const reg=activeRegistoFor(selectedWorkerId);
+  if(!reg) return;
+  if(activePausaFor(reg)) return;
+  reg.saida=new Date().toISOString();
+  await saveRegistos();
+  stopTicker();
+  renderPonto();
+}
+
+function renderHistorico(){
+  const el=document.getElementById('view-historico');
+  const sorted=[...registos].sort((a,b)=>new Date(b.entrada)-new Date(a.entrada));
+  let html='<div class="card"><div class="section-title">Registos</div>';
+  html+='<div class="note" style="margin-top:0;margin-bottom:12px;">Corrigir ou anular um registo pede o PIN de administrador. Nada é apagado — fica sempre a marca da alteração.</div>';
+  if(sorted.length===0){ html+='<div class="empty">Ainda não há registos.</div>'; }
+  else{
+    html+='<table><thead><tr><th>Data</th><th>Trab.</th><th>Obra</th><th>Tipo</th><th>Entr.</th><th>Saída</th><th>Pausa</th><th>Horas</th><th></th></tr></thead><tbody>';
+    sorted.forEach(r=>{
+      const dur=r.saida?fmtDuration(registoDurationMs(r)):'—';
+      const pausaTxt=(r.pausas&&r.pausas.length)?fmtDuration(pausasMs(r)):'—';
+      html+=`<tr class="${r.apagado?'anulado':''}">
+        <td>${fmtDate(r.entrada)}</td>
+        <td class="name-col">${r.trabalhador}${r.extra?' <span class="badge-extra">Extra</span>':''}</td>
+        <td class="name-col">${r.obra}</td>
+        <td>${r.tipo}</td>
+        <td>${fmtTime(r.entrada)}</td>
+        <td>${r.saida?fmtTime(r.saida):'em curso'}</td>
+        <td>${pausaTxt}</td>
+        <td>${dur}</td>
+        <td>${!r.apagado?`<button class="edt" onclick="editRegisto('${r.id}')">corrigir</button> <button class="del" onclick="anularRegisto('${r.id}')">anular</button>`:'anulado'}</td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function editRegisto(id){
+  ensureAdminPin(()=>{
+    askPin({ title:'PIN de administrador', sub:'Para corrigir este registo', expectedPin:adminPin, onSuccess:()=>openEditForm(id) });
+  });
+}
+function anularRegisto(id){
+  ensureAdminPin(()=>{
+    askPin({
+      title:'PIN de administrador', sub:'Para anular este registo', expectedPin:adminPin,
+      onSuccess: async ()=>{
+        const reg=registos.find(r=>r.id===id);
+        const motivo=prompt('Motivo da anulação:')||'(sem motivo indicado)';
+        reg.apagado=true;
+        reg.correcoes=reg.correcoes||[];
+        reg.correcoes.push({quando:new Date().toISOString(), campo:'anulação', motivo});
+        await saveRegistos();
+        renderHistorico();
+      }
+    });
+  });
+}
+
+function openEditForm(id){
+  const reg=registos.find(r=>r.id===id);
+  const root=document.getElementById('modalRoot');
+  root.innerHTML=`
+    <div class="modal-bg">
+      <div class="modal edit-modal" style="max-width:360px;text-align:left;">
+        <h3 style="text-align:center;">Corrigir registo</h3>
+        <p class="sub" style="text-align:center;">${reg.trabalhador} · ${reg.obra}</p>
+        <label class="field-label">Entrada</label>
+        <input type="datetime-local" id="editEntrada" value="${toLocalInputValue(reg.entrada)}">
+        <label class="field-label">Saída</label>
+        <input type="datetime-local" id="editSaida" value="${reg.saida?toLocalInputValue(reg.saida):''}">
+        <label class="field-label">Motivo da correção</label>
+        <input type="text" id="editMotivo" placeholder="ex: esqueceu-se de bater saída">
+        <button class="big-btn in" id="editSave">Guardar correção</button>
+        <button class="link-btn modal-cancel" id="editCancel">cancelar</button>
+      </div>
+    </div>`;
+  document.getElementById('editCancel').onclick=()=>{ root.innerHTML=''; };
+  document.getElementById('editSave').onclick=async ()=>{
+    const novaEntrada=document.getElementById('editEntrada').value;
+    const novaSaida=document.getElementById('editSaida').value;
+    const motivo=document.getElementById('editMotivo').value||'(sem motivo indicado)';
+    if(!novaEntrada){ alert('A entrada é obrigatória'); return; }
+    const antesEntrada=reg.entrada, antesSaida=reg.saida;
+    reg.entrada=new Date(novaEntrada).toISOString();
+    reg.saida=novaSaida?new Date(novaSaida).toISOString():null;
+    reg.correcoes=reg.correcoes||[];
+    reg.correcoes.push({quando:new Date().toISOString(), campo:'entrada/saída', de:`${fmtTime(antesEntrada)}–${antesSaida?fmtTime(antesSaida):'—'}`, para:`${fmtTime(reg.entrada)}–${reg.saida?fmtTime(reg.saida):'—'}`, motivo});
+    await saveRegistos();
+    root.innerHTML='';
+    renderHistorico();
+  };
+}
+
+function renderResumo(){
+  const el=document.getElementById('view-resumo');
+  const closed=registos.filter(r=>r.saida && !r.apagado);
+  function aggregate(keyFn){
+    const map={};
+    closed.forEach(r=>{ const k=keyFn(r); map[k]=(map[k]||0)+registoDurationMs(r); });
+    return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  }
+  const byObra=aggregate(r=>r.obra);
+  const byWorker=aggregate(r=>r.trabalhador);
+  const maxObra=byObra.length?byObra[0][1]:1;
+  const maxWorker=byWorker.length?byWorker[0][1]:1;
+  const extraTotal=closed.filter(r=>r.extra).reduce((s,r)=>s+registoDurationMs(r),0);
+
+  let html='<div class="card"><div class="section-title">Horas por obra</div>';
+  if(byObra.length===0) html+='<div class="empty">Sem dados ainda.</div>';
+  byObra.forEach(([obra,ms])=>{
+    const pct=Math.round((ms/maxObra)*100);
+    html+=`<div class="resumo-row"><div style="display:flex;justify-content:space-between;"><span class="resumo-name">${obra}</span><span class="resumo-h">${hoursDecimal(ms)} h</span></div><div class="resumo-bar-bg"><div class="resumo-bar" style="width:${pct}%"></div></div></div>`;
+  });
+  html+='</div>';
+
+  html+='<div class="card"><div class="section-title">Horas por trabalhador</div>';
+  if(byWorker.length===0) html+='<div class="empty">Sem dados ainda.</div>';
+  byWorker.forEach(([nome,ms])=>{
+    const pct=Math.round((ms/maxWorker)*100);
+    html+=`<div class="resumo-row"><div style="display:flex;justify-content:space-between;"><span class="resumo-name">${nome}</span><span class="resumo-h">${hoursDecimal(ms)} h</span></div><div class="resumo-bar-bg"><div class="resumo-bar" style="width:${pct}%"></div></div></div>`;
+  });
+  html+='</div>';
+
+  html+=`<div class="card"><div class="section-title">Horas extraordinárias</div><div class="resumo-row" style="border:none;"><span class="resumo-name">Total registado</span> <span class="resumo-h">${hoursDecimal(extraTotal)} h</span></div></div>`;
+  el.innerHTML=html;
+}
+
+document.querySelectorAll('.tab').forEach(tabEl=>{
+  tabEl.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tabEl.classList.add('active');
+    showTab(tabEl.dataset.tab);
+  });
+});
+function showTab(tab){
+  ['ponto','historico','resumo'].forEach(t=>{ document.getElementById('view-'+t).style.display=(t===tab)?'block':'none'; });
+  if(tab==='ponto') renderPonto();
+  if(tab==='historico') renderHistorico();
+  if(tab==='resumo') renderResumo();
+}
+
+function tickClock(){
+  const now=new Date();
+  document.getElementById('liveClock').textContent=
+    now.toLocaleDateString('pt-PT',{weekday:'short',day:'2-digit',month:'2-digit'})+'\n'+now.toLocaleTimeString('pt-PT');
+}
+setInterval(tickClock,1000);
+
+(async function init(){
+  if(WEBAPP_URL.includes('COLA_AQUI')){
+    document.getElementById('loadingMsg').textContent = 'Falta configurar o URL do backend (WEBAPP_URL) no ficheiro index.html.';
+    return;
+  }
+  try{
+    await loadAll();
+  }catch(e){
+    document.getElementById('loadingMsg').textContent = 'Não foi possível ligar à base de dados. Verifica a ligação à internet ou se o URL do Apps Script está correto.';
+    return;
+  }
+  document.getElementById('loadingMsg').style.display='none';
+  document.getElementById('view-ponto').style.display='block';
+  tickClock();
+  showTab('ponto');
+})();
+</script>
+</body>
+</html>
