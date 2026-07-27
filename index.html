@@ -8,38 +8,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --wood-dark:#241A14;
-    --wood-panel:#382920;
-    --wood-panel-2:#3F2E23;
-    --paper:#F1E7D2;
-    --paper-dim:#E4D6B8;
-    --copper:#C17A3E;
-    --copper-bright:#DE9552;
-    --ok-green:#6E8F5C;
-    --stop-red:#AE4A3C;
-    --line:#5A4534;
-    --shadow: 0 8px 24px rgba(0,0,0,.35);
+    --wood-dark:#241A14; --wood-panel:#382920; --wood-panel-2:#3F2E23;
+    --paper:#F1E7D2; --paper-dim:#E4D6B8; --copper:#C17A3E; --copper-bright:#DE9552;
+    --ok-green:#6E8F5C; --stop-red:#AE4A3C; --line:#5A4534; --shadow:0 8px 24px rgba(0,0,0,.35);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
-    background: radial-gradient(ellipse at top, #34271e 0%, var(--wood-dark) 60%);
-    color:var(--paper);
-    font-family:'IBM Plex Sans', sans-serif;
-    min-height:100vh;
-    padding:20px 14px 60px;
-  }
+  body{background:radial-gradient(ellipse at top,#34271e 0%,var(--wood-dark) 60%);color:var(--paper);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;padding:20px 14px 60px;}
   .wrap{max-width:640px;margin:0 auto;}
-  header{
-    display:flex;justify-content:space-between;align-items:flex-end;
-    border-bottom:2px solid var(--line);
-    padding-bottom:14px;margin-bottom:20px;
-  }
+  header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--line);padding-bottom:14px;margin-bottom:14px;}
   .brand{font-family:'Oswald',sans-serif;font-weight:700;font-size:26px;letter-spacing:.04em;text-transform:uppercase;}
   .brand span{color:var(--copper-bright);}
   .clock{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--paper-dim);text-align:right;line-height:1.3;white-space:pre-line;}
 
-  .tabs{display:flex;gap:8px;margin-bottom:18px;}
+  .session-bar{display:none;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:13.5px;color:var(--paper-dim);}
+  .session-bar b{color:var(--paper);}
+
+  .tabs{display:none;gap:8px;margin-bottom:18px;}
   .tab{flex:1;padding:10px 6px;text-align:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:.05em;text-transform:uppercase;background:var(--wood-panel);border:1px solid var(--line);border-radius:6px;cursor:pointer;color:var(--paper-dim);user-select:none;}
   .tab.active{background:var(--copper);border-color:var(--copper);color:#241A14;}
 
@@ -49,7 +34,6 @@
   .worker-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
   .worker-btn{position:relative;background:var(--wood-panel-2);border:1px solid var(--line);border-radius:8px;padding:16px 10px;text-align:center;cursor:pointer;font-weight:600;font-size:15px;min-height:64px;display:flex;align-items:center;justify-content:center;}
   .worker-btn:active{transform:scale(.97);}
-  .worker-btn .dot{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--ok-green);box-shadow:0 0 6px var(--ok-green);}
   .worker-btn.add{border-style:dashed;color:var(--paper-dim);font-weight:500;}
 
   input, select{width:100%;padding:12px 10px;background:var(--paper);color:var(--wood-dark);border:none;border-radius:6px;font-family:'IBM Plex Sans',sans-serif;font-size:15px;margin-bottom:10px;}
@@ -92,7 +76,6 @@
   .resumo-h{font-family:'IBM Plex Mono',monospace;color:var(--copper-bright);font-weight:600;}
 
   .note{font-size:12px;color:var(--paper-dim);margin-top:14px;line-height:1.55;}
-  .back-link{margin-bottom:12px;}
 
   .modal-bg{position:fixed;inset:0;background:rgba(10,7,5,.75);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
   .modal{background:var(--wood-panel);border:1px solid var(--line);border-radius:12px;padding:24px;width:100%;max-width:320px;text-align:center;box-shadow:var(--shadow);}
@@ -107,6 +90,7 @@
   .modal-cancel{margin-top:14px;}
   .pin-error{color:var(--stop-red);font-size:12.5px;min-height:16px;margin-bottom:4px;}
   .edit-modal input[type="datetime-local"]{font-family:'IBM Plex Mono',monospace;}
+  .row-actions{display:flex;justify-content:space-between;align-items:center;padding:8px 0;}
 </style>
 </head>
 <body>
@@ -116,103 +100,96 @@
     <div class="clock" id="liveClock">--:--:--</div>
   </header>
 
-  <div class="tabs">
-    <div class="tab active" data-tab="ponto">Ponto</div>
-    <div class="tab" data-tab="historico">Histórico</div>
-    <div class="tab" data-tab="resumo">Resumo</div>
-  </div>
+  <div class="session-bar" id="sessionBar"></div>
+  <div class="tabs" id="tabsBar"></div>
 
   <div id="loadingMsg" class="empty">A carregar dados...</div>
-  <div id="view-ponto" style="display:none;"></div>
-  <div id="view-historico" style="display:none;"></div>
-  <div id="view-resumo" style="display:none;"></div>
+  <div id="app"></div>
 
-  <div class="note">
-    Conforme o Artigo 202.º do Código do Trabalho: cada picagem exige o PIN pessoal do trabalhador (identificação inequívoca), as pausas são registadas à parte, e nenhum registo é apagado — só um administrador pode corrigir, e cada correção fica registada com data e motivo. Guarda os registos por, pelo menos, 5 anos. Nota de segurança: os PINs ficam guardados de forma simples (não encriptados) — chega para uso interno da equipa, mas não é um sistema de segurança bancária.
-  </div>
+  <div class="note" id="footNote"></div>
 </div>
-
 <div id="modalRoot"></div>
 
 <script>
-// >>> COLA AQUI O URL DA TUA IMPLEMENTAÇÃO DO APPS SCRIPT (termina em /exec) <<<
+// >>> URL da implementação do Apps Script (termina em /exec) <<<
 const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyYf2mWfQIV8-s4YehWepXsfRST627lAmkkLE6WtzBJxmK24kdStO54Z3fWivajUvTb7g/exec';
 
 let trabalhadores=[], obras=[], registos=[], adminPin=null;
-let selectedWorkerId=null, tickInterval=null;
+let currentUser=null;   // null | {role:'worker', id, nome} | {role:'admin'}
+let currentTab=null;
+let tickInterval=null;
 
-const DEFAULT_OBRAS=['Seminário Conciliar Braga','USF São Tomé de Negrelos','Quinta da Gateira','Baltor - Editora Barcelos','BOUW-PLAN Porto','Oficina / Produção'];
 const TIPOS=['Fabrico','Montagem','Outro'];
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
+/* ---------- API ---------- */
 async function apiGetAll(){
   const res = await fetch(WEBAPP_URL, {method:'GET'});
   if(!res.ok) throw new Error('Falha ao contactar o backend');
   return await res.json();
 }
 async function apiSave(key, value){
-  // body como string simples (sem headers custom) evita pré-voo CORS no Apps Script
   await fetch(WEBAPP_URL, { method:'POST', body: JSON.stringify({action:'save', key, value: JSON.stringify(value)}) });
 }
-
 async function loadAll(){
   const data = await apiGetAll();
   trabalhadores = data.trabalhadores ? JSON.parse(data.trabalhadores) : [];
-  if(data.obras){ obras = JSON.parse(data.obras); }
-  else{ obras = DEFAULT_OBRAS.slice(); await saveObras(); }
+  obras = data.obras ? JSON.parse(data.obras) : [];
   registos = data.registos ? JSON.parse(data.registos) : [];
   adminPin = data.adminPin ? JSON.parse(data.adminPin) : null;
+
+  // Semente inicial — só corre enquanto a Sheet estiver vazia (sem trabalhadores nem obras).
+  // Depois de correr uma vez, nunca mais mexe nestes dados sozinha.
+  if(trabalhadores.length===0 && obras.length===0){
+    obras = ['Pizarro - Kozowood'];
+    trabalhadores = [
+      {id:uid(), nome:'Lázaro', pin:'1111'},
+      {id:uid(), nome:'Anthony', pin:'2222'},
+      {id:uid(), nome:'Agostinho', pin:'3333'},
+      {id:uid(), nome:'Sérgio', pin:'4444'}
+    ];
+    await saveObras();
+    await saveTrabalhadores();
+  }
 }
 async function saveTrabalhadores(){ try{ await apiSave('trabalhadores', trabalhadores); }catch(e){ console.error(e); alert('Não foi possível guardar — verifica a ligação à internet.'); } }
-async function saveObras(){ try{ await apiSave('obras', obras); }catch(e){ console.error(e); } }
+async function saveObras(){ try{ await apiSave('obras', obras); }catch(e){ console.error(e); alert('Não foi possível guardar — verifica a ligação à internet.'); } }
 async function saveRegistos(){ try{ await apiSave('registos', registos); }catch(e){ console.error(e); alert('Não foi possível guardar — verifica a ligação à internet.'); } }
 async function saveAdminPin(){ try{ await apiSave('adminPin', adminPin); }catch(e){ console.error(e); } }
 
+/* ---------- FORMAT HELPERS ---------- */
 function fmtTime(iso){ return new Date(iso).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}); }
 function fmtDate(iso){ return new Date(iso).toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'}); }
 function fmtDuration(ms){ const totalMin=Math.floor(ms/60000); const h=Math.floor(totalMin/60); const m=totalMin%60; return h+'h '+String(m).padStart(2,'0')+'m'; }
 function hoursDecimal(ms){ return Math.round((ms/3600000)*100)/100; }
-function toLocalInputValue(iso){
-  const d=new Date(iso); const pad=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+function toLocalInputValue(iso){ const d=new Date(iso); const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function pausasMs(reg){ return (reg.pausas||[]).reduce((sum,p)=> sum + (p.fim ? (new Date(p.fim)-new Date(p.inicio)) : 0), 0); }
 function registoDurationMs(reg){ if(!reg.saida) return 0; return (new Date(reg.saida)-new Date(reg.entrada)) - pausasMs(reg); }
 function activeRegistoFor(workerId){ return registos.find(r=>r.trabalhadorId===workerId && !r.saida && !r.apagado) || null; }
 function activePausaFor(reg){ return reg && (reg.pausas||[]).find(p=>!p.fim) || null; }
 
+/* ---------- PIN KEYPAD MODALS ---------- */
 function askPin({title, sub, expectedPin, onSuccess, allowCancel=true}){
   const root=document.getElementById('modalRoot');
   let entered='';
   function render(err){
-    root.innerHTML = `
-      <div class="modal-bg">
-        <div class="modal">
-          <h3>${title}</h3>
-          <p class="sub">${sub}</p>
-          <div class="pin-error">${err?'PIN incorreto, tenta outra vez':''}</div>
-          <div class="pin-dots" id="pinDots"></div>
-          <div class="keypad" id="keypad"></div>
-          ${allowCancel?'<button class="link-btn modal-cancel" id="pinCancel">cancelar</button>':''}
-        </div>
-      </div>`;
-    const dotsEl=document.getElementById('pinDots');
-    dotsEl.innerHTML='';
-    for(let i=0;i<4;i++){
-      const d=document.createElement('div');
-      d.className='pin-dot'+(i<entered.length?' filled':'');
-      dotsEl.appendChild(d);
-    }
+    root.innerHTML = `<div class="modal-bg"><div class="modal">
+        <h3>${title}</h3><p class="sub">${sub}</p>
+        <div class="pin-error">${err?'PIN incorreto, tenta outra vez':''}</div>
+        <div class="pin-dots" id="pinDots"></div>
+        <div class="keypad" id="keypad"></div>
+        ${allowCancel?'<button class="link-btn modal-cancel" id="pinCancel">cancelar</button>':''}
+      </div></div>`;
+    const dotsEl=document.getElementById('pinDots'); dotsEl.innerHTML='';
+    for(let i=0;i<4;i++){ const d=document.createElement('div'); d.className='pin-dot'+(i<entered.length?' filled':''); dotsEl.appendChild(d); }
     const keys=['1','2','3','4','5','6','7','8','9','','0','⌫'];
-    const kp=document.getElementById('keypad');
-    kp.innerHTML='';
+    const kp=document.getElementById('keypad'); kp.innerHTML='';
     keys.forEach(k=>{
       const b=document.createElement('div');
       if(k===''){ b.style.visibility='hidden'; b.className='key'; }
       else{
-        b.className='key';
-        b.textContent=k;
+        b.className='key'; b.textContent=k;
         b.onclick=()=>{
           if(k==='⌫'){ entered=entered.slice(0,-1); render(false); return; }
           if(entered.length<4){ entered+=k; }
@@ -228,32 +205,21 @@ function askPin({title, sub, expectedPin, onSuccess, allowCancel=true}){
   }
   render(false);
 }
-
 function askNewPin({title, sub, onDone}){
   const root=document.getElementById('modalRoot');
   let step=1, firstPin='', entered='';
   function render(err){
-    root.innerHTML = `
-      <div class="modal-bg">
-        <div class="modal">
-          <h3>${title}</h3>
-          <p class="sub">${step===1?sub:'Confirma o PIN'}</p>
-          <div class="pin-error">${err?'Os PINs não coincidem, começa de novo':''}</div>
-          <div class="pin-dots" id="pinDots"></div>
-          <div class="keypad" id="keypad"></div>
-          <button class="link-btn modal-cancel" id="pinCancel">cancelar</button>
-        </div>
-      </div>`;
-    const dotsEl=document.getElementById('pinDots');
-    dotsEl.innerHTML='';
-    for(let i=0;i<4;i++){
-      const d=document.createElement('div');
-      d.className='pin-dot'+(i<entered.length?' filled':'');
-      dotsEl.appendChild(d);
-    }
+    root.innerHTML = `<div class="modal-bg"><div class="modal">
+        <h3>${title}</h3><p class="sub">${step===1?sub:'Confirma o PIN'}</p>
+        <div class="pin-error">${err?'Os PINs não coincidem, começa de novo':''}</div>
+        <div class="pin-dots" id="pinDots"></div>
+        <div class="keypad" id="keypad"></div>
+        <button class="link-btn modal-cancel" id="pinCancel">cancelar</button>
+      </div></div>`;
+    const dotsEl=document.getElementById('pinDots'); dotsEl.innerHTML='';
+    for(let i=0;i<4;i++){ const d=document.createElement('div'); d.className='pin-dot'+(i<entered.length?' filled':''); dotsEl.appendChild(d); }
     const keys=['1','2','3','4','5','6','7','8','9','','0','⌫'];
-    const kp=document.getElementById('keypad');
-    kp.innerHTML='';
+    const kp=document.getElementById('keypad'); kp.innerHTML='';
     keys.forEach(k=>{
       const b=document.createElement('div');
       if(k===''){ b.style.visibility='hidden'; b.className='key'; }
@@ -278,35 +244,96 @@ function askNewPin({title, sub, onDone}){
   render(false);
 }
 
-function ensureAdminPin(cb){
-  if(adminPin){ cb(); return; }
-  askNewPin({
-    title:'Criar PIN de administrador',
-    sub:'Este PIN é teu, para corrigir ou anular registos. Define-o agora.',
-    onDone: async (pin)=>{ adminPin=pin; await saveAdminPin(); cb(); }
-  });
+/* ---------- SESSION / LOGIN ---------- */
+function loginWorker(id){
+  const worker=trabalhadores.find(w=>w.id===id);
+  askPin({ title:worker.nome, sub:'Introduz o teu PIN pessoal', expectedPin:worker.pin,
+    onSuccess:()=>{ currentUser={role:'worker', id:worker.id, nome:worker.nome}; currentTab='ponto'; renderApp(); } });
 }
-
-function renderPonto(){
-  const el=document.getElementById('view-ponto');
-  if(!selectedWorkerId){
-    let html='<div class="card"><div class="section-title">Quem és?</div><div class="worker-grid">';
-    trabalhadores.forEach(w=>{
-      const active=!!activeRegistoFor(w.id);
-      html+=`<div class="worker-btn" onclick="pickWorker('${w.id}')">${w.nome}${active?'<span class="dot"></span>':''}</div>`;
-    });
-    html+=`<div class="worker-btn add" onclick="promptAddWorker()">+ Adicionar</div></div></div>`;
-    if(trabalhadores.length===0){ html+='<div class="empty">Ainda não há trabalhadores. Toca em "+ Adicionar" para criar o primeiro.</div>'; }
-    el.innerHTML=html;
+function loginAdmin(){
+  if(!adminPin){
+    askNewPin({ title:'Criar PIN de administrador', sub:'Este PIN é só teu — dá acesso à equipa, histórico completo e resumo.',
+      onDone: async (pin)=>{ adminPin=pin; await saveAdminPin(); currentUser={role:'admin'}; currentTab='resumo'; renderApp(); } });
     return;
   }
-  const worker=trabalhadores.find(w=>w.id===selectedWorkerId);
-  if(!worker){ selectedWorkerId=null; renderPonto(); return; }
+  askPin({ title:'Administrador', sub:'Introduz o PIN de administrador', expectedPin:adminPin,
+    onSuccess:()=>{ currentUser={role:'admin'}; currentTab='resumo'; renderApp(); } });
+}
+function logout(){ currentUser=null; currentTab=null; stopTicker(); renderApp(); }
+
+/* ---------- TOP BAR / TABS ---------- */
+function renderSessionBar(){
+  const el=document.getElementById('sessionBar');
+  if(!currentUser){ el.style.display='none'; return; }
+  el.style.display='flex';
+  const label = currentUser.role==='admin' ? 'Administrador' : currentUser.nome;
+  el.innerHTML = `<span>Sessão: <b>${label}</b></span><button class="link-btn" onclick="logout()">sair</button>`;
+}
+function tabsForRole(){
+  if(!currentUser) return [];
+  if(currentUser.role==='worker') return [['ponto','Ponto'],['meuhistorico','Meu histórico']];
+  return [['equipa','Equipa'],['historico','Histórico'],['resumo','Resumo']];
+}
+function renderTabsBar(){
+  const bar=document.getElementById('tabsBar');
+  const tabs=tabsForRole();
+  if(tabs.length===0){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  bar.innerHTML='';
+  tabs.forEach(([key,label])=>{
+    const d=document.createElement('div');
+    d.className='tab'+(currentTab===key?' active':'');
+    d.textContent=label;
+    d.onclick=()=>{ currentTab=key; renderTabsBar(); renderMain(); };
+    bar.appendChild(d);
+  });
+}
+function renderFootNote(){
+  const el=document.getElementById('footNote');
+  if(!currentUser){ el.textContent='Cada pessoa entra com o seu próprio PIN. Só o administrador pode criar trabalhadores, gerir obras, corrigir registos e ver o resumo geral.'; return; }
+  if(currentUser.role==='worker'){ el.textContent='Só vês os teus próprios registos. Depois de dares entrada/saída, só o administrador pode corrigir ou anular um registo.'; return; }
+  el.textContent='Nenhum registo é apagado — só corrigido ou anulado, sempre com motivo e data.';
+}
+
+function renderApp(){
+  renderSessionBar();
+  renderTabsBar();
+  renderFootNote();
+  renderMain();
+}
+function renderMain(){
+  const el=document.getElementById('app');
+  if(!currentUser){ renderLogin(); return; }
+  if(currentUser.role==='worker'){
+    if(currentTab==='ponto') renderPonto();
+    else if(currentTab==='meuhistorico') renderMeuHistorico();
+  } else {
+    if(currentTab==='equipa') renderEquipa();
+    else if(currentTab==='historico') renderHistorico();
+    else if(currentTab==='resumo') renderResumo();
+  }
+}
+
+/* ---------- LOGIN SCREEN ---------- */
+function renderLogin(){
+  const el=document.getElementById('app');
+  let html='<div class="card"><div class="section-title">Quem és?</div><div class="worker-grid">';
+  trabalhadores.forEach(w=>{
+    html+=`<div class="worker-btn" onclick="loginWorker('${w.id}')">${w.nome}</div>`;
+  });
+  html+=`<div class="worker-btn add" onclick="loginAdmin()">Administrador</div></div></div>`;
+  if(trabalhadores.length===0){ html+='<div class="empty">Ainda não há trabalhadores criados. Entra como Administrador para os adicionares.</div>'; }
+  el.innerHTML=html;
+}
+
+/* ---------- WORKER: PONTO ---------- */
+function renderPonto(){
+  const el=document.getElementById('app');
+  const worker=currentUser;
   const active=activeRegistoFor(worker.id);
   const pausa=activePausaFor(active);
 
-  let html='<div class="back-link"><button class="link-btn" onclick="deselectWorker()">&larr; trocar trabalhador</button></div>';
-  html+='<div class="punchcard">';
+  let html='<div class="punchcard">';
   html+=`<div class="name">${worker.nome}${active&&active.extra?'<span class="badge-extra">Extra</span>':''}${pausa?'<span class="badge-pausa">Em pausa</span>':''}</div>`;
 
   if(active){
@@ -323,112 +350,133 @@ function renderPonto(){
     if(pausa) html+=`<div class="status" style="margin-top:6px;">Termina a pausa antes de bater saída</div>`;
   } else {
     html+=`<div class="status">Sem registo em curso</div>`;
-    html+=`<label class="field-label" style="margin-top:14px;">Obra</label><select id="selObra">`;
-    obras.forEach(o=>{ html+=`<option value="${o}">${o}</option>`; });
-    html+=`<option value="__nova__">+ Nova obra...</option></select>`;
-    html+=`<label class="field-label">Tipo</label><select id="selTipo">`;
-    TIPOS.forEach(t=>{ html+=`<option value="${t}">${t}</option>`; });
-    html+=`</select>`;
-    html+=`<div class="checkbox-row"><input type="checkbox" id="chkExtra"><label for="chkExtra">Registar como hora extraordinária</label></div>`;
-    html+=`<button class="big-btn in" onclick="clockIn()">Bater entrada</button>`;
+    if(obras.length===0){
+      html+=`<div class="status" style="margin-top:14px;">O administrador ainda não adicionou nenhuma obra.</div>`;
+    } else {
+      html+=`<label class="field-label" style="margin-top:14px;">Obra</label><select id="selObra">`;
+      obras.forEach(o=>{ html+=`<option value="${o}">${o}</option>`; });
+      html+=`</select>`;
+      html+=`<label class="field-label">Tipo</label><select id="selTipo">`;
+      TIPOS.forEach(t=>{ html+=`<option value="${t}">${t}</option>`; });
+      html+=`</select>`;
+      html+=`<div class="checkbox-row"><input type="checkbox" id="chkExtra"><label for="chkExtra">Registar como hora extraordinária</label></div>`;
+      html+=`<button class="big-btn in" onclick="clockIn()">Bater entrada</button>`;
+    }
   }
   html+='</div>';
   el.innerHTML=html;
 
   if(active && !pausa){ startTicker(active); } else { stopTicker(); }
 }
-
 function startTicker(reg){
   stopTicker();
-  function tick(){
-    const t=document.getElementById('liveTimer');
-    if(!t) return;
-    const elapsed=(Date.now()-new Date(reg.entrada).getTime()) - pausasMs(reg);
-    t.textContent=fmtDuration(elapsed);
-  }
-  tick();
-  tickInterval=setInterval(tick,1000);
+  function tick(){ const t=document.getElementById('liveTimer'); if(!t) return; const elapsed=(Date.now()-new Date(reg.entrada).getTime())-pausasMs(reg); t.textContent=fmtDuration(elapsed); }
+  tick(); tickInterval=setInterval(tick,1000);
 }
 function stopTicker(){ if(tickInterval){ clearInterval(tickInterval); tickInterval=null; } }
-
-function pickWorker(id){
-  const worker=trabalhadores.find(w=>w.id===id);
-  askPin({
-    title:worker.nome,
-    sub:'Introduz o teu PIN pessoal',
-    expectedPin:worker.pin,
-    onSuccess:()=>{ selectedWorkerId=id; renderPonto(); }
-  });
-}
-function deselectWorker(){ selectedWorkerId=null; stopTicker(); renderPonto(); }
-
-async function promptAddWorker(){
-  const nome=prompt('Nome do trabalhador:');
-  if(!nome||!nome.trim()) return;
-  askNewPin({
-    title:'PIN de '+nome.trim(),
-    sub:'Escolhe um PIN de 4 dígitos para picar o ponto',
-    onDone: async (pin)=>{
-      trabalhadores.push({id:uid(), nome:nome.trim(), pin});
-      await saveTrabalhadores();
-      renderPonto();
-    }
-  });
-}
 
 async function clockIn(){
   const selObra=document.getElementById('selObra');
   const selTipo=document.getElementById('selTipo');
   const extra=document.getElementById('chkExtra').checked;
-  let obra=selObra.value;
-  if(obra==='__nova__'){
-    const nova=prompt('Nome da nova obra:');
-    if(!nova||!nova.trim()) return;
-    obra=nova.trim(); obras.push(obra); await saveObras();
-  }
-  const tipo=selTipo.value;
+  const obra=selObra.value, tipo=selTipo.value;
   registos.push({
-    id:uid(), trabalhadorId:selectedWorkerId,
-    trabalhador:trabalhadores.find(w=>w.id===selectedWorkerId).nome,
+    id:uid(), trabalhadorId:currentUser.id, trabalhador:currentUser.nome,
     obra, tipo, extra, entrada:new Date().toISOString(), saida:null,
     pausas:[], apagado:false, correcoes:[]
   });
   await saveRegistos();
   renderPonto();
 }
-
 async function startPausa(){
-  const reg=activeRegistoFor(selectedWorkerId);
-  if(!reg) return;
-  reg.pausas=reg.pausas||[];
-  reg.pausas.push({inicio:new Date().toISOString(), fim:null});
-  await saveRegistos();
-  renderPonto();
+  const reg=activeRegistoFor(currentUser.id); if(!reg) return;
+  reg.pausas=reg.pausas||[]; reg.pausas.push({inicio:new Date().toISOString(), fim:null});
+  await saveRegistos(); renderPonto();
 }
 async function endPausa(){
-  const reg=activeRegistoFor(selectedWorkerId);
-  if(!reg) return;
-  const p=activePausaFor(reg);
-  if(!p) return;
-  p.fim=new Date().toISOString();
-  await saveRegistos();
-  renderPonto();
+  const reg=activeRegistoFor(currentUser.id); if(!reg) return;
+  const p=activePausaFor(reg); if(!p) return;
+  p.fim=new Date().toISOString(); await saveRegistos(); renderPonto();
 }
 async function clockOut(){
-  const reg=activeRegistoFor(selectedWorkerId);
-  if(!reg) return;
+  const reg=activeRegistoFor(currentUser.id); if(!reg) return;
   if(activePausaFor(reg)) return;
-  reg.saida=new Date().toISOString();
-  await saveRegistos();
-  stopTicker();
-  renderPonto();
+  reg.saida=new Date().toISOString(); await saveRegistos(); stopTicker(); renderPonto();
 }
 
+/* ---------- WORKER: MEU HISTORICO (read-only, só o seu) ---------- */
+function renderMeuHistorico(){
+  const el=document.getElementById('app');
+  const meus=registos.filter(r=>r.trabalhadorId===currentUser.id).sort((a,b)=>new Date(b.entrada)-new Date(a.entrada));
+  let html='<div class="card"><div class="section-title">Meu histórico</div>';
+  if(meus.length===0){ html+='<div class="empty">Ainda não tens registos.</div>'; }
+  else{
+    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Tipo</th><th>Entr.</th><th>Saída</th><th>Pausa</th><th>Horas</th></tr></thead><tbody>';
+    meus.forEach(r=>{
+      const dur=r.saida?fmtDuration(registoDurationMs(r)):'—';
+      const pausaTxt=(r.pausas&&r.pausas.length)?fmtDuration(pausasMs(r)):'—';
+      html+=`<tr class="${r.apagado?'anulado':''}">
+        <td>${fmtDate(r.entrada)}</td><td class="name-col">${r.obra}</td><td>${r.tipo}${r.extra?' <span class="badge-extra">Extra</span>':''}</td>
+        <td>${fmtTime(r.entrada)}</td><td>${r.saida?fmtTime(r.saida):'em curso'}</td><td>${pausaTxt}</td><td>${dur}</td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+/* ---------- ADMIN: EQUIPA (trabalhadores + obras) ---------- */
+function renderEquipa(){
+  const el=document.getElementById('app');
+  let html='<div class="card"><div class="section-title">Trabalhadores</div>';
+  if(trabalhadores.length===0) html+='<div class="empty">Ainda não há trabalhadores.</div>';
+  trabalhadores.forEach(w=>{
+    html+=`<div class="row-actions"><span class="resumo-name">${w.nome}</span><button class="del" onclick="removeTrabalhador('${w.id}')">remover</button></div>`;
+  });
+  html+=`<button class="big-btn in" onclick="promptAddWorker()">+ Adicionar trabalhador</button></div>`;
+
+  html+='<div class="card"><div class="section-title">Obras</div>';
+  if(obras.length===0) html+='<div class="empty">Ainda não há obras.</div>';
+  obras.forEach(o=>{
+    html+=`<div class="row-actions"><span class="resumo-name">${o}</span><button class="del" onclick="removeObra('${o.replace(/'/g,"\\'")}')">remover</button></div>`;
+  });
+  html+=`<button class="big-btn mid" onclick="promptAddObra()">+ Adicionar obra</button></div>`;
+  el.innerHTML=html;
+}
+async function promptAddWorker(){
+  const nome=prompt('Nome do trabalhador:');
+  if(!nome||!nome.trim()) return;
+  askNewPin({ title:'PIN de '+nome.trim(), sub:'Escolhe um PIN de 4 dígitos para este trabalhador picar o ponto',
+    onDone: async (pin)=>{ trabalhadores.push({id:uid(), nome:nome.trim(), pin}); await saveTrabalhadores(); renderEquipa(); } });
+}
+async function removeTrabalhador(id){
+  const w=trabalhadores.find(x=>x.id===id);
+  if(!confirm(`Remover ${w.nome}? Os registos já feitos mantêm-se no histórico.`)) return;
+  trabalhadores=trabalhadores.filter(x=>x.id!==id);
+  await saveTrabalhadores();
+  renderEquipa();
+}
+async function promptAddObra(){
+  const nome=prompt('Nome da obra:');
+  if(!nome||!nome.trim()) return;
+  if(obras.includes(nome.trim())){ alert('Essa obra já existe.'); return; }
+  obras.push(nome.trim());
+  await saveObras();
+  renderEquipa();
+}
+async function removeObra(nome){
+  if(!confirm(`Remover a obra "${nome}"?`)) return;
+  obras=obras.filter(o=>o!==nome);
+  await saveObras();
+  renderEquipa();
+}
+
+/* ---------- ADMIN: HISTORICO (todos, com correções) ---------- */
 function renderHistorico(){
-  const el=document.getElementById('view-historico');
+  const el=document.getElementById('app');
   const sorted=[...registos].sort((a,b)=>new Date(b.entrada)-new Date(a.entrada));
-  let html='<div class="card"><div class="section-title">Registos</div>';
-  html+='<div class="note" style="margin-top:0;margin-bottom:12px;">Corrigir ou anular um registo pede o PIN de administrador. Nada é apagado — fica sempre a marca da alteração.</div>';
+  let html='<div class="card"><div class="section-title">Histórico (todos)</div>';
   if(sorted.length===0){ html+='<div class="empty">Ainda não há registos.</div>'; }
   else{
     html+='<table><thead><tr><th>Data</th><th>Trab.</th><th>Obra</th><th>Tipo</th><th>Entr.</th><th>Saída</th><th>Pausa</th><th>Horas</th><th></th></tr></thead><tbody>';
@@ -438,12 +486,9 @@ function renderHistorico(){
       html+=`<tr class="${r.apagado?'anulado':''}">
         <td>${fmtDate(r.entrada)}</td>
         <td class="name-col">${r.trabalhador}${r.extra?' <span class="badge-extra">Extra</span>':''}</td>
-        <td class="name-col">${r.obra}</td>
-        <td>${r.tipo}</td>
-        <td>${fmtTime(r.entrada)}</td>
-        <td>${r.saida?fmtTime(r.saida):'em curso'}</td>
-        <td>${pausaTxt}</td>
-        <td>${dur}</td>
+        <td class="name-col">${r.obra}</td><td>${r.tipo}</td>
+        <td>${fmtTime(r.entrada)}</td><td>${r.saida?fmtTime(r.saida):'em curso'}</td>
+        <td>${pausaTxt}</td><td>${dur}</td>
         <td>${!r.apagado?`<button class="edt" onclick="editRegisto('${r.id}')">corrigir</button> <button class="del" onclick="anularRegisto('${r.id}')">anular</button>`:'anulado'}</td>
       </tr>`;
     });
@@ -452,47 +497,32 @@ function renderHistorico(){
   html+='</div>';
   el.innerHTML=html;
 }
-
-function editRegisto(id){
-  ensureAdminPin(()=>{
-    askPin({ title:'PIN de administrador', sub:'Para corrigir este registo', expectedPin:adminPin, onSuccess:()=>openEditForm(id) });
-  });
+async function editRegisto(id){ openEditForm(id); }
+async function anularRegisto(id){
+  const reg=registos.find(r=>r.id===id);
+  const motivo=prompt('Motivo da anulação:');
+  if(motivo===null) return;
+  reg.apagado=true;
+  reg.correcoes=reg.correcoes||[];
+  reg.correcoes.push({quando:new Date().toISOString(), campo:'anulação', motivo:motivo||'(sem motivo indicado)'});
+  await saveRegistos();
+  renderHistorico();
 }
-function anularRegisto(id){
-  ensureAdminPin(()=>{
-    askPin({
-      title:'PIN de administrador', sub:'Para anular este registo', expectedPin:adminPin,
-      onSuccess: async ()=>{
-        const reg=registos.find(r=>r.id===id);
-        const motivo=prompt('Motivo da anulação:')||'(sem motivo indicado)';
-        reg.apagado=true;
-        reg.correcoes=reg.correcoes||[];
-        reg.correcoes.push({quando:new Date().toISOString(), campo:'anulação', motivo});
-        await saveRegistos();
-        renderHistorico();
-      }
-    });
-  });
-}
-
 function openEditForm(id){
   const reg=registos.find(r=>r.id===id);
   const root=document.getElementById('modalRoot');
-  root.innerHTML=`
-    <div class="modal-bg">
-      <div class="modal edit-modal" style="max-width:360px;text-align:left;">
-        <h3 style="text-align:center;">Corrigir registo</h3>
-        <p class="sub" style="text-align:center;">${reg.trabalhador} · ${reg.obra}</p>
-        <label class="field-label">Entrada</label>
-        <input type="datetime-local" id="editEntrada" value="${toLocalInputValue(reg.entrada)}">
-        <label class="field-label">Saída</label>
-        <input type="datetime-local" id="editSaida" value="${reg.saida?toLocalInputValue(reg.saida):''}">
-        <label class="field-label">Motivo da correção</label>
-        <input type="text" id="editMotivo" placeholder="ex: esqueceu-se de bater saída">
-        <button class="big-btn in" id="editSave">Guardar correção</button>
-        <button class="link-btn modal-cancel" id="editCancel">cancelar</button>
-      </div>
-    </div>`;
+  root.innerHTML=`<div class="modal-bg"><div class="modal edit-modal" style="max-width:360px;text-align:left;">
+      <h3 style="text-align:center;">Corrigir registo</h3>
+      <p class="sub" style="text-align:center;">${reg.trabalhador} · ${reg.obra}</p>
+      <label class="field-label">Entrada</label>
+      <input type="datetime-local" id="editEntrada" value="${toLocalInputValue(reg.entrada)}">
+      <label class="field-label">Saída</label>
+      <input type="datetime-local" id="editSaida" value="${reg.saida?toLocalInputValue(reg.saida):''}">
+      <label class="field-label">Motivo da correção</label>
+      <input type="text" id="editMotivo" placeholder="ex: esqueceu-se de bater saída">
+      <button class="big-btn in" id="editSave">Guardar correção</button>
+      <button class="link-btn modal-cancel" id="editCancel">cancelar</button>
+    </div></div>`;
   document.getElementById('editCancel').onclick=()=>{ root.innerHTML=''; };
   document.getElementById('editSave').onclick=async ()=>{
     const novaEntrada=document.getElementById('editEntrada').value;
@@ -510,8 +540,9 @@ function openEditForm(id){
   };
 }
 
+/* ---------- ADMIN: RESUMO ---------- */
 function renderResumo(){
-  const el=document.getElementById('view-resumo');
+  const el=document.getElementById('app');
   const closed=registos.filter(r=>r.saida && !r.apagado);
   function aggregate(keyFn){
     const map={};
@@ -544,20 +575,7 @@ function renderResumo(){
   el.innerHTML=html;
 }
 
-document.querySelectorAll('.tab').forEach(tabEl=>{
-  tabEl.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    tabEl.classList.add('active');
-    showTab(tabEl.dataset.tab);
-  });
-});
-function showTab(tab){
-  ['ponto','historico','resumo'].forEach(t=>{ document.getElementById('view-'+t).style.display=(t===tab)?'block':'none'; });
-  if(tab==='ponto') renderPonto();
-  if(tab==='historico') renderHistorico();
-  if(tab==='resumo') renderResumo();
-}
-
+/* ---------- CLOCK / INIT ---------- */
 function tickClock(){
   const now=new Date();
   document.getElementById('liveClock').textContent=
@@ -567,19 +585,17 @@ setInterval(tickClock,1000);
 
 (async function init(){
   if(WEBAPP_URL.includes('COLA_AQUI')){
-    document.getElementById('loadingMsg').textContent = 'Falta configurar o URL do backend (WEBAPP_URL) no ficheiro index.html.';
+    document.getElementById('loadingMsg').textContent='Falta configurar o URL do backend (WEBAPP_URL) no ficheiro index.html.';
     return;
   }
-  try{
-    await loadAll();
-  }catch(e){
-    document.getElementById('loadingMsg').textContent = 'Não foi possível ligar à base de dados. Verifica a ligação à internet ou se o URL do Apps Script está correto.';
+  try{ await loadAll(); }
+  catch(e){
+    document.getElementById('loadingMsg').textContent='Não foi possível ligar à base de dados. Verifica a ligação à internet ou se o URL do Apps Script está correto.';
     return;
   }
   document.getElementById('loadingMsg').style.display='none';
-  document.getElementById('view-ponto').style.display='block';
   tickClock();
-  showTab('ponto');
+  renderApp();
 })();
 </script>
 </body>
