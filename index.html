@@ -118,7 +118,7 @@ const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyYf2mWfQIV8-s4YehWe
 let trabalhadores=[], obras=[], registos=[], adminPin=null;
 let currentUser=null;   // null | {role:'worker', id, nome} | {role:'admin'}
 let currentTab=null;
-let modoRegisto='numero';
+
 
 const TIPOS=['Fabrico','Montagem','Outro'];
 
@@ -328,15 +328,6 @@ function renderLogin(){
 }
 
 /* ---------- WORKER: REGISTAR HORAS ---------- */
-function setModoRegisto(m){
-  modoRegisto=m;
-  const tabNum=document.getElementById('modoNumeroTab'), tabInt=document.getElementById('modoIntervaloTab');
-  if(tabNum) tabNum.classList.toggle('active', m==='numero');
-  if(tabInt) tabInt.classList.toggle('active', m==='intervalo');
-  const fNum=document.getElementById('modoNumeroFields'), fInt=document.getElementById('modoIntervaloFields');
-  if(fNum) fNum.style.display = m==='numero' ? 'block':'none';
-  if(fInt) fInt.style.display = m==='intervalo' ? 'block':'none';
-}
 
 function renderRegistar(){
   const el=document.getElementById('app');
@@ -355,19 +346,8 @@ function renderRegistar(){
     TIPOS.forEach(t=>{ html+=`<option value="${t}">${t}</option>`; });
     html+=`</select>`;
 
-    html+=`<label class="field-label">Como queres indicar as horas?</label>
-      <div class="modo-tabs">
-        <div class="tab active" id="modoNumeroTab" onclick="setModoRegisto('numero')">Nº de horas</div>
-        <div class="tab" id="modoIntervaloTab" onclick="setModoRegisto('intervalo')">Início–fim</div>
-      </div>`;
-    html+=`<div id="modoNumeroFields">
-        <label class="field-label">Horas trabalhadas</label>
-        <input type="number" id="regHoras" step="0.25" min="0.25" max="24" placeholder="ex: 7.5">
-      </div>`;
-    html+=`<div id="modoIntervaloFields" style="display:none;">
-        <label class="field-label">Hora de início</label><input type="time" id="regInicio">
-        <label class="field-label">Hora de fim</label><input type="time" id="regFim">
-      </div>`;
+    html+=`<label class="field-label">Hora de início</label><input type="time" id="regInicio">`;
+    html+=`<label class="field-label">Hora de fim</label><input type="time" id="regFim">`;
     html+=`<div class="checkbox-row"><input type="checkbox" id="chkExtra"><label for="chkExtra">Registar como hora extraordinária</label></div>`;
     html+=`<button class="big-btn in" onclick="submitRegisto()">Registar horas</button>`;
   }
@@ -385,7 +365,6 @@ function renderRegistar(){
   }
 
   el.innerHTML=html;
-  modoRegisto='numero';
 }
 
 async function submitRegisto(){
@@ -395,21 +374,15 @@ async function submitRegisto(){
   const extra=document.getElementById('chkExtra').checked;
   if(!data){ alert('Escolhe a data.'); return; }
 
-  let horas, horaInicio=null, horaFim=null;
-  if(modoRegisto==='numero'){
-    horas=parseFloat(document.getElementById('regHoras').value);
-    if(!horas || horas<=0){ alert('Indica o número de horas.'); return; }
-  } else {
-    horaInicio=document.getElementById('regInicio').value;
-    horaFim=document.getElementById('regFim').value;
-    if(!horaInicio || !horaFim){ alert('Indica a hora de início e de fim.'); return; }
-    horas=calcHorasIntervalo(horaInicio, horaFim);
-    if(horas<=0){ alert('O intervalo indicado não é válido.'); return; }
-  }
+  const horaInicio=document.getElementById('regInicio').value;
+  const horaFim=document.getElementById('regFim').value;
+  if(!horaInicio || !horaFim){ alert('Indica a hora de início e de fim.'); return; }
+  const horas=calcHorasIntervalo(horaInicio, horaFim);
+  if(horas<=0){ alert('O intervalo indicado não é válido.'); return; }
 
   registos.push({
     id:uid(), trabalhadorId:currentUser.id, trabalhador:currentUser.nome,
-    data, obra, tipo, extra, modo:modoRegisto, horas, horaInicio, horaFim,
+    data, obra, tipo, extra, modo:'intervalo', horas, horaInicio, horaFim,
     criadoEm:new Date().toISOString(), apagado:false, correcoes:[]
   });
   await saveRegistos();
