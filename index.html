@@ -167,8 +167,16 @@ function round2(n){ return Math.round(n*100)/100; }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function calcHorasIntervalo(inicio, fim){
   const [h1,m1]=inicio.split(':').map(Number), [h2,m2]=fim.split(':').map(Number);
-  let mins=(h2*60+m2)-(h1*60+m1);
-  if(mins<0) mins+=24*60;
+  const startMin=h1*60+m1;
+  let endMin=h2*60+m2;
+  if(endMin<startMin) endMin+=24*60;
+  let mins=endMin-startMin;
+
+  // desconta 1h de almoço sempre que o turno atravessa a janela 12:00–13:00
+  const ALMOCO_INICIO=12*60, ALMOCO_FIM=13*60;
+  if(startMin<ALMOCO_FIM && endMin>ALMOCO_INICIO){
+    mins=Math.max(0, mins-60);
+  }
   return round2(mins/60);
 }
 
@@ -346,6 +354,7 @@ function renderRegistar(){
 
     html+=`<label class="field-label">Hora de início</label><input type="time" id="regInicio">`;
     html+=`<label class="field-label">Hora de fim</label><input type="time" id="regFim">`;
+    html+=`<div class="status" style="margin:-4px 0 10px;">Se o horário passar pelas 12h–13h, desconta-se 1h de almoço automaticamente.</div>`;
     html+=`<div class="checkbox-row"><input type="checkbox" id="chkExtra"><label for="chkExtra">Registar como hora extraordinária</label></div>`;
     html+=`<button class="big-btn in" onclick="submitRegisto()">Registar horas</button>`;
   }
