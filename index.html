@@ -120,7 +120,7 @@ let currentUser=null;   // null | {role:'worker', id, nome} | {role:'admin'}
 let currentTab=null;
 
 
-const TIPOS=['Fabrico','Montagem','Outro'];
+
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
@@ -342,9 +342,6 @@ function renderRegistar(){
     html+=`<label class="field-label">Obra</label><select id="regObra">`;
     obras.forEach(o=>{ html+=`<option value="${o}">${o}</option>`; });
     html+=`</select>`;
-    html+=`<label class="field-label">Tipo</label><select id="regTipo">`;
-    TIPOS.forEach(t=>{ html+=`<option value="${t}">${t}</option>`; });
-    html+=`</select>`;
 
     html+=`<label class="field-label">Hora de início</label><input type="time" id="regInicio">`;
     html+=`<label class="field-label">Hora de fim</label><input type="time" id="regFim">`;
@@ -357,9 +354,9 @@ function renderRegistar(){
     .sort((a,b)=> new Date(b.data)-new Date(a.data) || new Date(b.criadoEm)-new Date(a.criadoEm)).slice(0,5);
   if(meus.length){
     html+='<div class="card"><div class="section-title">Últimos registos</div>';
-    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Tipo</th><th>Horas</th></tr></thead><tbody>';
+    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Horas</th></tr></thead><tbody>';
     meus.forEach(r=>{
-      html+=`<tr><td>${fmtDataBR(r.data)}</td><td class="name-col">${r.obra}</td><td>${r.tipo}${r.extra?' <span class="badge-extra">Extra</span>':''}</td><td>${fmtHoras(r.horas)}</td></tr>`;
+      html+=`<tr><td>${fmtDataBR(r.data)}</td><td class="name-col">${r.obra}</td><td>${fmtHoras(r.horas)}${r.extra?' <span class="badge-extra">Extra</span>':''}</td></tr>`;
     });
     html+='</tbody></table></div>';
   }
@@ -370,7 +367,6 @@ function renderRegistar(){
 async function submitRegisto(){
   const data=document.getElementById('regData').value;
   const obra=document.getElementById('regObra').value;
-  const tipo=document.getElementById('regTipo').value;
   const extra=document.getElementById('chkExtra').checked;
   if(!data){ alert('Escolhe a data.'); return; }
 
@@ -382,7 +378,7 @@ async function submitRegisto(){
 
   registos.push({
     id:uid(), trabalhadorId:currentUser.id, trabalhador:currentUser.nome,
-    data, obra, tipo, extra, modo:'intervalo', horas, horaInicio, horaFim,
+    data, obra, extra, modo:'intervalo', horas, horaInicio, horaFim,
     criadoEm:new Date().toISOString(), apagado:false, correcoes:[]
   });
   await saveRegistos();
@@ -397,10 +393,10 @@ function renderMeuHistorico(){
   let html='<div class="card"><div class="section-title">Meu histórico</div>';
   if(meus.length===0){ html+='<div class="empty">Ainda não tens registos.</div>'; }
   else{
-    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Tipo</th><th>Horas</th></tr></thead><tbody>';
+    html+='<table><thead><tr><th>Data</th><th>Obra</th><th>Horas</th></tr></thead><tbody>';
     meus.forEach(r=>{
       html+=`<tr class="${r.apagado?'anulado':''}">
-        <td>${fmtDataBR(r.data)}</td><td class="name-col">${r.obra}</td><td>${r.tipo}${r.extra?' <span class="badge-extra">Extra</span>':''}</td><td>${fmtHoras(r.horas)}</td>
+        <td>${fmtDataBR(r.data)}</td><td class="name-col">${r.obra}</td><td>${fmtHoras(r.horas)}${r.extra?' <span class="badge-extra">Extra</span>':''}</td>
       </tr>`;
     });
     html+='</tbody></table>';
@@ -462,12 +458,12 @@ function renderHistorico(){
   let html='<div class="card"><div class="section-title">Histórico (todos)</div>';
   if(sorted.length===0){ html+='<div class="empty">Ainda não há registos.</div>'; }
   else{
-    html+='<table><thead><tr><th>Data</th><th>Trab.</th><th>Obra</th><th>Tipo</th><th>Horas</th><th></th></tr></thead><tbody>';
+    html+='<table><thead><tr><th>Data</th><th>Trab.</th><th>Obra</th><th>Horas</th><th></th></tr></thead><tbody>';
     sorted.forEach(r=>{
       html+=`<tr class="${r.apagado?'anulado':''}">
         <td>${fmtDataBR(r.data)}</td>
         <td class="name-col">${r.trabalhador}${r.extra?' <span class="badge-extra">Extra</span>':''}</td>
-        <td class="name-col">${r.obra}</td><td>${r.tipo}</td>
+        <td class="name-col">${r.obra}</td>
         <td>${fmtHoras(r.horas)}</td>
         <td>${!r.apagado?`<button class="edt" onclick="editRegisto('${r.id}')">corrigir</button> <button class="del" onclick="anularRegisto('${r.id}')">anular</button>`:'anulado'}</td>
       </tr>`;
